@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>従業員顔写真収集アプリ - モバイル版</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary:#002045;
+      --primary-2:#0e345f;
+      --secondary:#545f72;
+      --bg:#f7fafc;
+      --surface:#ffffff;
+      --line:#dbe4ee;
+      --line-2:#e7eef6;
+      --text:#0f1f33;
+      --muted:#5c6b7f;
+      --soft:#eef4fa;
+      --ok:#117a49;
+      --warn:#b7791f;
+      --danger:#c53030;
+      --shadow:0 18px 48px rgba(0,32,69,.08);
+      --radius:18px;
+      --radius-sm:14px;
+      --focus:0 0 0 4px rgba(0,32,69,.14);
+      --sticky:calc(18px + env(safe-area-inset-bottom));
+    }
+
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--text); }
+    body{
+      font-family:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    button, input, select, textarea { font:inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    img { max-width:100%; display:block; }
+
+    .app{
+      min-height:100dvh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background:rgba(247,250,252,.92);
+      backdrop-filter: blur(14px);
+      border-bottom:1px solid rgba(219,228,238,.9);
+    }
+
+    .topbar-inner{
+      max-width:880px;
+      margin:0 auto;
+      padding:16px 16px 14px;
+    }
+
+    .brand-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#e9f0f8;
+      color:var(--primary);
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.02em;
+    }
+
+    .title{
+      margin:10px 0 4px;
+      font-size:clamp(22px,4vw,32px);
+      line-height:1.2;
+      font-weight:800;
+      letter-spacing:-.02em;
+    }
+
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.65;
+    }
+
+    .status-pill{
+      flex:0 0 auto;
+      align-self:flex-start;
+      padding:8px 12px;
+      border-radius:999px;
+      background:var(--surface);
+      border:1px solid var(--line);
+      color:var(--secondary);
+      font-size:12px;
+      font-weight:700;
+      box-shadow:0 10px 24px rgba(0,32,69,.04);
+    }
+
+    .progress-wrap{
+      display:grid;
+      gap:10px;
+    }
+
+    .progress-meta{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-size:13px;
+      color:var(--muted);
+      font-weight:600;
+    }
+
+    .progress-bar{
+      height:8px;
+      border-radius:999px;
+      background:#e9eff6;
+      overflow:hidden;
+    }
+
+    .progress-fill{
+      height:100%;
+      width:20%;
+      background:linear-gradient(90deg,var(--primary),#1f4d7f);
+      border-radius:999px;
+      transition:width .28s ease;
+    }
+
+    .step-dots{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:8px;
+    }
+
+    .step-dot{
+      padding:10px 8px;
+      border-radius:14px;
+      background:var(--surface);
+      border:1px solid var(--line);
+      color:var(--muted);
+      text-align:center;
+      font-size:12px;
+      font-weight:700;
+      line-height:1.35;
+      min-height:56px;
+      display:grid;
+      place-items:center;
+    }
+
+    .step-dot.active{
+      border-color:rgba(0,32,69,.18);
+      background:#eff4fa;
+      color:var(--primary);
+      box-shadow: inset 0 0 0 1px rgba(0,32,69,.04);
+    }
+
+    .step-dot.done{
+      background:#edf7f1;
+      border-color:#caead6;
+      color:var(--ok);
+    }
+
+    .content{
+      width:min(100%, 880px);
+      margin:0 auto;
+      padding:18px 16px 150px;
+    }
+
+    .screen{
+      display:none;
+      animation:fadeIn .18s ease;
+    }
+    .screen.active{ display:block; }
+
+    @keyframes fadeIn{
+      from{ opacity:0; transform:translateY(6px); }
+      to{ opacity:1; transform:none; }
+    }
+
+    .card{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head{
+      padding:20px 20px 14px;
+      border-bottom:1px solid var(--line-2);
+      background:linear-gradient(180deg,#ffffff 0%, #fbfdff 100%);
+    }
+
+    .card-body{
+      padding:20px;
+      display:grid;
+      gap:16px;
+    }
+
+    .section-title{
+      margin:0;
+      font-size:21px;
+      line-height:1.3;
+      font-weight:800;
+      letter-spacing:-.02em;
+    }
+
+    .section-desc{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.7;
+    }
+
+    .grid{
+      display:grid;
+      gap:14px;
+    }
+
+    .field{
+      display:grid;
+      gap:8px;
+    }
+
+    .label{
+      font-size:14px;
+      font-weight:700;
+      color:var(--text);
+    }
+
+    .required{
+      color:var(--danger);
+      margin-left:4px;
+    }
+
+    .input, .select, .textarea{
+      width:100%;
+      appearance:none;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+      color:var(--text);
+      padding:15px 16px;
+      min-height:54px;
+      box-shadow:0 1px 0 rgba(255,255,255,.7) inset;
+    }
+
+    .textarea{ min-height:120px; resize:vertical; }
+
+    .input:focus, .select:focus, .textarea:focus, .ghost-btn:focus, .primary-btn:focus, .secondary-btn:focus, .tile:focus, .option-card:focus{
+      outline:none;
+      box-shadow:var(--focus);
+      border-color:rgba(0,32,69,.4);
+    }
+
+    .helper{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    .filename-box{
+      border:1px solid #d4e0ed;
+      background:#f5f9fd;
+      color:var(--primary);
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:14px;
+      line-height:1.6;
+      word-break:break-all;
+    }
+
+    .hero-panel{
+      background:linear-gradient(180deg,#07294f 0%, #002045 100%);
+      color:#fff;
+      border-radius:24px;
+      padding:22px;
+      display:grid;
+      gap:14px;
+      box-shadow:0 18px 48px rgba(0,32,69,.18);
+    }
+
+    .hero-panel h2{
+      margin:0;
+      font-size:24px;
+      line-height:1.25;
+      letter-spacing:-.02em;
+    }
+
+    .hero-panel p{
+      margin:0;
+      color:rgba(255,255,255,.82);
+      line-height:1.7;
+      font-size:14px;
+    }
+
+    .tile-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+
+    .tile{
+      display:grid;
+      grid-template-columns:44px 1fr;
+      gap:14px;
+      align-items:start;
+      text-align:left;
+      width:100%;
+      padding:16px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      cursor:pointer;
+      text-decoration:none;
+    }
+
+    .tile .icon,
+    .option-card .icon{
+      width:44px;
+      height:44px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:#edf3f9;
+      color:var(--primary);
+      font-weight:800;
+      font-size:18px;
+    }
+
+    .tile-title{
+      font-size:15px;
+      font-weight:800;
+      margin-bottom:4px;
+    }
+
+    .tile-desc{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .guide-list{
+      display:grid;
+      gap:12px;
+      list-style:none;
+      padding:0;
+      margin:0;
+    }
+
+    .guide-item{
+      display:grid;
+      grid-template-columns:36px 1fr;
+      gap:12px;
+      align-items:start;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:#fff;
+    }
+
+    .guide-num{
+      width:36px;
+      height:36px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      background:#eef3f8;
+      color:var(--primary);
+      font-size:14px;
+      font-weight:800;
+    }
+
+    .guide-item strong{
+      display:block;
+      font-size:15px;
+      margin-bottom:4px;
+    }
+
+    .guide-item p{
+      margin:0;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .option-grid{
+      display:grid;
+      gap:12px;
+    }
+
+    .option-card{
+      display:grid;
+      grid-template-columns:44px 1fr auto;
+      gap:14px;
+      align-items:center;
+      width:100%;
+      padding:16px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      cursor:pointer;
+      text-align:left;
+    }
+
+    .option-meta strong{
+      display:block;
+      font-size:15px;
+      margin-bottom:4px;
+    }
+
+    .option-meta span{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .option-arrow{
+      color:#8fa0b5;
+      font-weight:800;
+      font-size:18px;
+    }
+
+    .camera-shell{
+      display:grid;
+      gap:14px;
+    }
+
+    .camera-stage{
+      position:relative;
+      overflow:hidden;
+      border-radius:24px;
+      background:#081523;
+      border:1px solid #17314e;
+      min-height:360px;
+    }
+
+    video, .preview-image{
+      width:100%;
+      aspect-ratio:3 / 4;
+      object-fit:cover;
+      display:block;
+      background:#081523;
+    }
+
+    .camera-overlay{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:linear-gradient(to bottom, rgba(0,0,0,.24), rgba(0,0,0,.06) 20%, rgba(0,0,0,.06) 80%, rgba(0,0,0,.24));
+    }
+
+    .camera-mask{
+      position:absolute;
+      left:50%;
+      top:45%;
+      transform:translate(-50%,-50%);
+      width:min(66%, 360px);
+      height:min(76%, 460px);
+      border:4px solid rgba(255,255,255,.92);
+      border-radius:50% / 44%;
+      box-shadow:0 0 0 200vmax rgba(7,14,24,.42);
+    }
+
+    .camera-mask::before,
+    .camera-mask::after{
+      content:"";
+      position:absolute;
+      left:10%;
+      right:10%;
+      border-top:2px dashed rgba(255,255,255,.84);
+    }
+
+    .camera-mask::before{ top:24%; }
+    .camera-mask::after{ top:54%; }
+
+    .shoulder-guide{
+      position:absolute;
+      left:50%;
+      bottom:12%;
+      transform:translateX(-50%);
+      width:min(72%, 410px);
+      height:72px;
+      border-top:3px dashed rgba(255,255,255,.8);
+      border-radius:50% 50% 0 0;
+    }
+
+    .camera-note{
+      position:absolute;
+      left:12px;
+      right:12px;
+      bottom:12px;
+      padding:12px 14px;
+      border-radius:16px;
+      background:rgba(8,12,20,.64);
+      color:#fff;
+      font-size:13px;
+      line-height:1.6;
+      text-align:center;
+      backdrop-filter: blur(8px);
+    }
+
+    .status-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .status-card{
+      padding:14px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#fff;
+      min-height:108px;
+    }
+
+    .status-card strong{
+      display:block;
+      font-size:14px;
+      margin-bottom:8px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:28px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      margin-bottom:8px;
+    }
+
+    .badge.ok{ background:#e9f7ef; color:var(--ok); }
+    .badge.warn{ background:#fff6e8; color:var(--warn); }
+    .badge.ng{ background:#feecec; color:var(--danger); }
+    .badge.neutral{ background:#edf3f8; color:var(--secondary); }
+
+    .status-card p{
+      margin:0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    .inline-banner{
+      padding:14px 16px;
+      border-radius:18px;
+      border:1px solid #d8e4f0;
+      background:#f5f9fd;
+      color:var(--primary);
+      line-height:1.7;
+      font-size:13px;
+    }
+
+    .summary-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .summary-row{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+      padding:14px 0;
+      border-bottom:1px solid var(--line-2);
+    }
+
+    .summary-row:last-child{ border-bottom:none; padding-bottom:0; }
+    .summary-key{
+      color:var(--muted);
+      font-size:13px;
+      min-width:88px;
+    }
+    .summary-val{
+      flex:1 1 auto;
+      text-align:right;
+      font-size:14px;
+      font-weight:700;
+      line-height:1.6;
+      word-break:break-word;
+    }
+
+    .notice{
+      border-radius:18px;
+      padding:16px;
+      border:1px solid #d7e3ef;
+      background:#fbfdff;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.7;
+    }
+
+    .complete-card{
+      text-align:center;
+      padding:32px 22px;
+      display:grid;
+      gap:16px;
+    }
+
+    .complete-icon{
+      width:72px;
+      height:72px;
+      margin:0 auto;
+      border-radius:24px;
+      display:grid;
+      place-items:center;
+      background:#ecf7f0;
+      color:var(--ok);
+      font-size:34px;
+      font-weight:800;
+    }
+
+    .complete-card h2{
+      margin:0;
+      font-size:26px;
+      line-height:1.25;
+      letter-spacing:-.02em;
+    }
+
+    .complete-card p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.75;
+    }
+
+    .sticky-actions{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:25;
+      background:linear-gradient(180deg, rgba(247,250,252,0) 0%, rgba(247,250,252,.86) 12%, rgba(247,250,252,.98) 40%);
+      padding:18px 16px var(--sticky);
+    }
+
+    .sticky-inner{
+      width:min(100%, 880px);
+      margin:0 auto;
+      display:grid;
+      gap:10px;
+    }
+
+    .action-row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .single-row{
+      display:grid;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .ghost-btn{
+      width:100%;
+      min-height:54px;
+      border:none;
+      border-radius:18px;
+      font-weight:800;
+      cursor:pointer;
+      padding:14px 18px;
+      transition:transform .08s ease, opacity .2s ease, box-shadow .2s ease;
+    }
+
+    .primary-btn:hover,.secondary-btn:hover,.ghost-btn:hover{ transform:translateY(-1px); }
+    .primary-btn:active,.secondary-btn:active,.ghost-btn:active{ transform:none; }
+    .primary-btn:disabled,.secondary-btn:disabled,.ghost-btn:disabled{ cursor:not-allowed; opacity:.48; transform:none; }
+
+    .primary-btn{
+      background:linear-gradient(180deg,#0b315a 0%, #002045 100%);
+      color:#fff;
+      box-shadow:0 14px 32px rgba(0,32,69,.18);
+    }
+
+    .secondary-btn{
+      background:#eaf1f8;
+      color:var(--primary);
+    }
+
+    .ghost-btn{
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+
+    .hidden{ display:none !important; }
+
+    .desktop-note{
+      display:none;
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+
+    @media (min-width: 769px){
+      .content{ padding-top:24px; }
+      .tile-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+      .option-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+      .desktop-note{ display:block; }
+    }
+
+    @media (max-width: 768px){
+      .step-dot{
+        font-size:11px;
+        min-height:52px;
+        padding:8px 6px;
+      }
+    }
+
+    @media (max-width: 480px){
+      .topbar-inner{ padding:14px 14px 12px; }
+      .content{ padding:16px 14px 146px; }
+      .card-head{ padding:18px 18px 12px; }
+      .card-body{ padding:18px; }
+      .title{ font-size:24px; }
+      .section-title{ font-size:20px; }
+      .status-grid{ grid-template-columns:1fr; }
+      .action-row{ grid-template-columns:1fr; }
+      .hero-panel{ padding:20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-row">
+          <div>
+            <span class="eyebrow">人事・従業員証 再発行対応</span>
+            <h1 class="title">顔写真提出</h1>
+            <p class="subtitle">画面の案内に沿って進めるだけで、提出用の顔写真を登録できます。</p>
+          </div>
+          <div class="status-pill" id="headerStatus">入力前</div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-meta">
+            <span id="progressText">STEP 1 / 5</span>
+            <span id="progressName">基本情報</span>
+          </div>
+          <div class="progress-bar" aria-hidden="true">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="step-dots" aria-label="進行状況">
+            <div class="step-dot active" data-step-dot="1">1<br>入力</div>
+            <div class="step-dot" data-step-dot="2">2<br>ガイド</div>
+            <div class="step-dot" data-step-dot="3">3<br>撮影</div>
+            <div class="step-dot" data-step-dot="4">4<br>確認</div>
+            <div class="step-dot" data-step-dot="5">5<br>完了</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="screen active" data-step="1">
+        <div class="hero-panel">
+          <h2>まずは基本情報を入力してください</h2>
+          <p>提出時のファイル名は「従業員コード_氏名.jpg」で自動生成されます。入力後の修正も可能ですが、提出前に内容をご確認ください。</p>
+        </div>
+
+        <div style="height:14px"></div>
+
+        <article class="card">
+          <div class="card-head">
+            <h2 class="section-title">基本情報</h2>
+            <p class="section-desc">ITに詳しくない方でも迷いにくいよう、必要な入力だけに絞っています。</p>
+          </div>
+          <div class="card-body">
+            <div class="grid">
+              <label class="field">
+                <span class="label">従業員コード<span class="required">*</span></span>
+                <input class="input" id="employeeCode" type="text" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="例：000123" />
+                <span class="helper">英数字を推奨します。ファイル名にそのまま使用されます。</span>
+              </label>
+
+              <label class="field">
+                <span class="label">氏名<span class="required">*</span></span>
+                <input class="input" id="employeeName" type="text" autocomplete="name" maxlength="40" placeholder="例：山田 太郎" />
+                <span class="helper">氏名は漢字のまま使用できます。使用できない記号は自動調整されます。</span>
+              </label>
+
+              <div class="field">
+                <span class="label">提出予定ファイル名</span>
+                <div class="filename-box" id="filenamePreview">未入力です</div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="screen" data-step="2">
+        <article class="card">
+          <div class="card-head">
+            <h2 class="section-title">撮影前の確認</h2>
+            <p class="section-desc">「まず検索」「次にカテゴリ」のように迷わせない導線が重視されていたため、この画面でも先に確認事項だけを分けています。</p>
+          </div>
+          <div class="card-body">
+            <ul class="guide-list">
+              <li class="guide-item">
+                <div class="guide-num">1</div>
+                <div>
+                  <strong>顔を枠の中央に合わせる</strong>
+                  <p>頭の位置と目線がガイドに近づくよう調整してください。真正面を向くと登録品質が安定します。</p>
+                </div>
+              </li>
+              <li class="guide-item">
+                <div class="guide-num">2</div>
+                <div>
+                  <strong>帽子・マスク・サングラスは外す</strong>
+                  <p>顔全体がはっきり見える状態にしてください。髪が顔を大きく隠さないようご注意ください。</p>
+                </div>
+              </li>
+              <li class="guide-item">
+                <div class="guide-num">3</div>
+                <div>
+                  <strong>背景はなるべく無地、明るい場所で撮る</strong>
+                  <p>逆光や暗い場所は避けてください。壁の前など、背景が整理された場所を推奨します。</p>
+                </div>
+              </li>
+              <li class="guide-item">
+                <div class="guide-num">4</div>
+                <div>
+                  <strong>撮影後に内容を確認してから提出する</strong>
+                  <p>ぼやけ、顔切れ、暗さがある場合は、その場で撮り直しできます。</p>
+                </div>
+              </li>
+            </ul>
+
+            <div class="inline-banner">スマホ運用を前提に、次の画面では「撮影する」か「既存写真を選ぶ」かを選択できます。</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="screen" data-step="3">
+        <article class="card">
+          <div class="card-head">
+            <h2 class="section-title">撮影方法を選んでください</h2>
+            <p class="section-desc">その場で撮影する方法と、すでに撮影済みの写真を選ぶ方法のどちらにも対応しています。</p>
+          </div>
+          <div class="card-body">
+            <div class="option-grid">
+              <button class="option-card" id="openCameraModeBtn" type="button">
+                <span class="icon">📷</span>
+                <span class="option-meta">
+                  <strong>カメラで撮影する</strong>
+                  <span>ガイド枠を見ながら、その場で撮影します。</span>
+                </span>
+                <span class="option-arrow">›</span>
+              </button>
+
+              <button class="option-card" id="openUploadModeBtn" type="button">
+                <span class="icon">🖼️</span>
+                <span class="option-meta">
+                  <strong>撮影済み写真を選ぶ</strong>
+                  <span>スマホに保存済みの写真を提出用に読み込みます。</span>
+                </span>
+                <span class="option-arrow">›</span>
+              </button>
+            </div>
+
+            <div id="cameraArea" class="camera-shell hidden">
+              <div class="field">
+                <span class="label">利用するカメラ</span>
+                <select class="select" id="cameraSelect">
+                  <option value="">カメラを起動すると選択できます</option>
+                </select>
+                <span class="helper">端末によっては前面カメラ・背面カメラを切り替えできます。</span>
+              </div>
+
+              <div class="camera-stage">
+                <video id="video" playsinline autoplay muted></video>
+                <img id="previewImage" class="preview-image hidden" alt="撮影プレビュー" />
+                <div class="camera-overlay" id="cameraOverlay">
+                  <div class="camera-mask"></div>
+                  <div class="shoulder-guide"></div>
+                  <div class="camera-note" id="guideMessage">「カメラを起動」を押して、顔を白い枠の中央に合わせてください。</div>
+                </div>
+              </div>
+
+              <div class="status-grid">
+                <div class="status-card">
+                  <strong>顔の位置</strong>
+                  <span class="badge neutral" id="positionStatus">未判定</span>
+                  <p id="positionHint">ガイド枠の中央に顔を合わせてください。</p>
+                </div>
+                <div class="status-card">
+                  <strong>顔の大きさ</strong>
+                  <span class="badge neutral" id="sizeStatus">未判定</span>
+                  <p id="sizeHint">顔が小さすぎず大きすぎない位置に調整してください。</p>
+                </div>
+                <div class="status-card">
+                  <strong>明るさ</strong>
+                  <span class="badge neutral" id="brightnessStatus">未判定</span>
+                  <p id="brightnessHint">暗い場合は明るい場所で撮影してください。</p>
+                </div>
+                <div class="status-card">
+                  <strong>顔検出</strong>
+                  <span class="badge neutral" id="faceStatus">未判定</span>
+                  <p id="faceHint">対応ブラウザでは自動判定します。未対応時は手動確認です。</p>
+                </div>
+              </div>
+
+              <div class="inline-banner" id="captureReadiness">カメラ未起動です。</div>
+
+              <div class="action-row">
+                <button class="ghost-btn" id="startCameraBtn" type="button">カメラを起動</button>
+                <button class="ghost-btn" id="switchCameraBtn" type="button" disabled>カメラ切替</button>
+              </div>
+
+              <div class="action-row">
+                <button class="primary-btn" id="captureBtn" type="button" disabled>撮影する</button>
+                <button class="secondary-btn" id="retakeBtn" type="button" disabled>撮り直す</button>
+              </div>
+            </div>
+
+            <input id="fileInput" type="file" accept="image/*" capture="user" class="hidden" />
+
+            <div class="notice">
+              スマホではブラウザやOSの制約により、顔の自動判定が一部端末で利用できない場合があります。その場合でも、ガイド枠とプレビュー確認で提出できます。
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="screen" data-step="4">
+        <article class="card">
+          <div class="card-head">
+            <h2 class="section-title">提出内容の確認</h2>
+            <p class="section-desc">ファイル名・氏名・画像を確認してから提出してください。問題があれば前の画面に戻って修正できます。</p>
+          </div>
+          <div class="card-body">
+            <div class="camera-stage">
+              <img id="reviewImage" class="preview-image" alt="提出前プレビュー" />
+            </div>
+
+            <div class="summary-list">
+              <div class="summary-row">
+                <div class="summary-key">従業員コード</div>
+                <div class="summary-val" id="reviewCode">-</div>
+              </div>
+              <div class="summary-row">
+                <div class="summary-key">氏名</div>
+                <div class="summary-val" id="reviewName">-</div>
+              </div>
+              <div class="summary-row">
+                <div class="summary-key">ファイル名</div>
+                <div class="summary-val" id="reviewFile">-</div>
+              </div>
+              <div class="summary-row">
+                <div class="summary-key">提出方法</div>
+                <div class="summary-val" id="reviewMethod">-</div>
+              </div>
+            </div>
+
+            <div class="inline-banner" id="submitHint">
+              送信先APIが未設定の場合は、ブラウザ上のデモ完了表示になります。本番運用時はアップロード先を設定してください。
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="screen" data-step="5">
+        <article class="card">
+          <div class="complete-card">
+            <div class="complete-icon">✓</div>
+            <h2>提出が完了しました</h2>
+            <p id="completeMessage">ご協力ありがとうございました。必要に応じて、人事担当者から別途ご連絡する場合があります。</p>
+            <div class="filename-box" id="completeFilename">提出ファイル名：-</div>
+            <div class="single-row">
+              <button class="ghost-btn" id="restartBtn" type="button">別の写真を提出する</button>
+            </div>
+          </div>
+        </article>
+        <div class="desktop-note">デスクトップでは確認しやすく表示されますが、UI設計自体はスマホ運用を優先しています。</div>
+      </section>
+    </main>
+
+    <div class="sticky-actions">
+      <div class="sticky-inner" id="stickyArea">
+        <div class="single-row" id="step1Actions">
+          <button class="primary-btn" id="toStep2Btn" type="button">次へ進む</button>
+        </div>
+
+        <div class="action-row hidden" id="step2Actions">
+          <button class="ghost-btn" id="backToStep1Btn" type="button">戻る</button>
+          <button class="primary-btn" id="toStep3Btn" type="button">撮影へ進む</button>
+        </div>
+
+        <div class="action-row hidden" id="step3Actions">
+          <button class="ghost-btn" id="backToStep2Btn" type="button">戻る</button>
+          <button class="primary-btn" id="toStep4Btn" type="button" disabled>確認へ進む</button>
+        </div>
+
+        <div class="action-row hidden" id="step4Actions">
+          <button class="ghost-btn" id="backToStep3Btn" type="button">修正する</button>
+          <button class="primary-btn" id="submitBtn" type="button" disabled>提出する</button>
+        </div>
+
+        <div class="single-row hidden" id="step5Actions">
+          <button class="secondary-btn" id="downloadBtn" type="button">写真を保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="captureCanvas" class="hidden" aria-hidden="true"></canvas>
+  <canvas id="analysisCanvas" class="hidden" width="360" height="480" aria-hidden="true"></canvas>
+
+  <script>
+    const APP_CONFIG = {
+      uploadEndpoint: '',
+      storageKey: 'employee_photo_capture_mobile_step_v2'
+    };
+
+    const state = {
+      step: 1,
+      stream: null,
+      devices: [],
+      currentDeviceId: '',
+      facingMode: 'user',
+      detector: null,
+      detectionTimer: null,
+      captureBlob: null,
+      captureUrl: '',
+      sourceMethod: '',
+      submitted: false
+    };
+
+    const els = {
+      screens: Array.from(document.querySelectorAll('.screen')),
+      stepDots: Array.from(document.querySelectorAll('.step-dot')),
+      progressFill: document.getElementById('progressFill'),
+      progressText: document.getElementById('progressText'),
+      progressName: document.getElementById('progressName'),
+      headerStatus: document.getElementById('headerStatus'),
+
+      employeeCode: document.getElementById('employeeCode'),
+      employeeName: document.getElementById('employeeName'),
+      filenamePreview: document.getElementById('filenamePreview'),
+
+      toStep2Btn: document.getElementById('toStep2Btn'),
+      toStep3Btn: document.getElementById('toStep3Btn'),
+      toStep4Btn: document.getElementById('toStep4Btn'),
+      backToStep1Btn: document.getElementById('backToStep1Btn'),
+      backToStep2Btn: document.getElementById('backToStep2Btn'),
+      backToStep3Btn: document.getElementById('backToStep3Btn'),
+
+      step1Actions: document.getElementById('step1Actions'),
+      step2Actions: document.getElementById('step2Actions'),
+      step3Actions: document.getElementById('step3Actions'),
+      step4Actions: document.getElementById('step4Actions'),
+      step5Actions: document.getElementById('step5Actions'),
+
+      openCameraModeBtn: document.getElementById('openCameraModeBtn'),
+      openUploadModeBtn: document.getElementById('openUploadModeBtn'),
+      cameraArea: document.getElementById('cameraArea'),
+      cameraSelect: document.getElementById('cameraSelect'),
+      startCameraBtn: document.getElementById('startCameraBtn'),
+      switchCameraBtn: document.getElementById('switchCameraBtn'),
+      captureBtn: document.getElementById('captureBtn'),
+      retakeBtn: document.getElementById('retakeBtn'),
+      fileInput: document.getElementById('fileInput'),
+      submitBtn: document.getElementById('submitBtn'),
+      downloadBtn: document.getElementById('downloadBtn'),
+      restartBtn: document.getElementById('restartBtn'),
+
+      video: document.getElementById('video'),
+      previewImage: document.getElementById('previewImage'),
+      reviewImage: document.getElementById('reviewImage'),
+      cameraOverlay: document.getElementById('cameraOverlay'),
+      guideMessage: document.getElementById('guideMessage'),
+      captureReadiness: document.getElementById('captureReadiness'),
+
+      positionStatus: document.getElementById('positionStatus'),
+      sizeStatus: document.getElementById('sizeStatus'),
+      brightnessStatus: document.getElementById('brightnessStatus'),
+      faceStatus: document.getElementById('faceStatus'),
+
+      positionHint: document.getElementById('positionHint'),
+      sizeHint: document.getElementById('sizeHint'),
+      brightnessHint: document.getElementById('brightnessHint'),
+      faceHint: document.getElementById('faceHint'),
+
+      reviewCode: document.getElementById('reviewCode'),
+      reviewName: document.getElementById('reviewName'),
+      reviewFile: document.getElementById('reviewFile'),
+      reviewMethod: document.getElementById('reviewMethod'),
+      submitHint: document.getElementById('submitHint'),
+      completeMessage: document.getElementById('completeMessage'),
+      completeFilename: document.getElementById('completeFilename'),
+
+      captureCanvas: document.getElementById('captureCanvas'),
+      analysisCanvas: document.getElementById('analysisCanvas')
+    };
+
+    const stepNames = {
+      1: '基本情報',
+      2: '撮影ガイド',
+      3: '撮影',
+      4: '確認',
+      5: '完了'
+    };
+
+    function sanitizeFilePart(value, fallback = 'unknown'){
+      const cleaned = (value || '')
+        .trim()
+        .replace(/[\\/:*?"<>|]+/g, '_')
+        .replace(/\s+/g, '_')
+        .replace(/^_+|_+$/g, '');
+      return cleaned || fallback;
+    }
+
+    function buildFilename(){
+      const code = sanitizeFilePart(els.employeeCode.value, 'employee');
+      const name = sanitizeFilePart(els.employeeName.value, 'name');
+      return `${code}_${name}.jpg`;
+    }
+
+    function hasBasicInfo(){
+      return !!els.employeeCode.value.trim() && !!els.employeeName.value.trim();
+    }
+
+    function updateFilename(){
+      els.filenamePreview.textContent = hasBasicInfo() ? buildFilename() : '未入力です';
+      updateStepButtons();
+    }
+
+    function updateStepButtons(){
+      els.toStep2Btn.disabled = !hasBasicInfo();
+      els.toStep4Btn.disabled = !state.captureBlob;
+      els.submitBtn.disabled = !state.captureBlob;
+      els.captureBtn.disabled = !state.stream || !hasBasicInfo() || !!state.captureBlob;
+      els.retakeBtn.disabled = !state.captureBlob;
+      els.switchCameraBtn.disabled = !state.stream || state.devices.length < 2;
+    }
+
+    function showStep(step){
+      state.step = step;
+      els.screens.forEach(screen => screen.classList.toggle('active', Number(screen.dataset.step) === step));
+      els.stepDots.forEach(dot => {
+        const dotStep = Number(dot.dataset.stepDot);
+        dot.classList.toggle('active', dotStep === step);
+        dot.classList.toggle('done', dotStep < step);
+      });
+
+      els.progressFill.style.width = `${step * 20}%`;
+      els.progressText.textContent = `STEP ${step} / 5`;
+      els.progressName.textContent = stepNames[step];
+      els.headerStatus.textContent = step === 5 ? '提出完了' : `${stepNames[step]}`;
+
+      els.step1Actions.classList.toggle('hidden', step !== 1);
+      els.step2Actions.classList.toggle('hidden', step !== 2);
+      els.step3Actions.classList.toggle('hidden', step !== 3);
+      els.step4Actions.classList.toggle('hidden', step !== 4);
+      els.step5Actions.classList.toggle('hidden', step !== 5);
+
+      if(step === 4){ syncReview(); }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      updateStepButtons();
+    }
+
+    function setBadge(el, tone, text){
+      el.className = `badge ${tone}`;
+      el.textContent = text;
+    }
+
+    function resetAssessment(){
+      setBadge(els.positionStatus, 'neutral', '未判定');
+      setBadge(els.sizeStatus, 'neutral', '未判定');
+      setBadge(els.brightnessStatus, 'neutral', '未判定');
+      setBadge(els.faceStatus, 'neutral', '未判定');
+      els.positionHint.textContent = 'ガイド枠の中央に顔を合わせてください。';
+      els.sizeHint.textContent = '顔が小さすぎず大きすぎない位置に調整してください。';
+      els.brightnessHint.textContent = '暗い場合は明るい場所で撮影してください。';
+      els.faceHint.textContent = '対応ブラウザでは自動判定します。未対応時は手動確認です。';
+      els.captureReadiness.textContent = 'カメラ未起動です。';
+      els.guideMessage.textContent = '「カメラを起動」を押して、顔を白い枠の中央に合わせてください。';
+    }
+
+    function stopStream(){
+      if(state.stream){
+        state.stream.getTracks().forEach(track => track.stop());
+        state.stream = null;
+      }
+      if(state.detectionTimer){
+        clearInterval(state.detectionTimer);
+        state.detectionTimer = null;
+      }
+      updateStepButtons();
+    }
+
+    async function loadDevices(){
+      try{
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        state.devices = devices.filter(d => d.kind === 'videoinput');
+        els.cameraSelect.innerHTML = '';
+        if(!state.devices.length){
+          els.cameraSelect.innerHTML = '<option value="">利用可能なカメラがありません</option>';
+          return;
+        }
+        state.devices.forEach((device, index) => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.textContent = device.label || `カメラ ${index + 1}`;
+          els.cameraSelect.appendChild(option);
+        });
+        if(state.currentDeviceId){
+          els.cameraSelect.value = state.currentDeviceId;
+        }
+      } catch(error){
+        console.error(error);
+      }
+    }
+
+    function setupDetector(){
+      if('FaceDetector' in window){
+        try{
+          state.detector = new FaceDetector({ fastMode: true, maxDetectedFaces: 2 });
+          els.faceHint.textContent = 'ブラウザの顔検出機能で自動判定しています。';
+          return;
+        } catch(error){
+          console.warn(error);
+        }
+      }
+      state.detector = null;
+      setBadge(els.faceStatus, 'warn', '手動確認');
+      els.faceHint.textContent = 'この端末では自動顔検出が使えないため、ガイド枠とプレビューで確認してください。';
+    }
+
+    async function startCamera(deviceId = ''){
+      if(!hasBasicInfo()){
+        alert('先に従業員コードと氏名を入力してください。');
+        showStep(1);
+        return;
+      }
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        alert('このブラウザはカメラ利用に対応していません。写真ファイルを選択してください。');
+        return;
+      }
+
+      try{
+        stopStream();
+        clearCapture(false);
+        const constraints = {
+          audio: false,
+          video: deviceId
+            ? { deviceId: { exact: deviceId }, width: { ideal: 1080 }, height: { ideal: 1440 } }
+            : { facingMode: { ideal: state.facingMode }, width: { ideal: 1080 }, height: { ideal: 1440 } }
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        state.stream = stream;
+        els.video.srcObject = stream;
+        await els.video.play();
+
+        const track = stream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        state.currentDeviceId = settings.deviceId || deviceId || '';
+        await loadDevices();
+        setupDetector();
+        startAssessmentLoop();
+        els.captureReadiness.textContent = '撮影位置を確認中です。';
+        els.guideMessage.textContent = '顔を中央に合わせてください。判定が整ったら撮影できます。';
+        state.sourceMethod = 'カメラ撮影';
+        updateStepButtons();
+      } catch(error){
+        console.error(error);
+        alert('カメラを起動できませんでした。権限設定または端末の利用状況を確認してください。');
+      }
+    }
+
+    function startAssessmentLoop(){
+      if(state.detectionTimer) clearInterval(state.detectionTimer);
+      state.detectionTimer = setInterval(assessFrame, 900);
+    }
+
+    function assessBrightness(ctx, width, height){
+      const sampleW = Math.floor(width * .44);
+      const sampleH = Math.floor(height * .44);
+      const sx = Math.floor((width - sampleW) / 2);
+      const sy = Math.floor((height - sampleH) / 2);
+      const data = ctx.getImageData(sx, sy, sampleW, sampleH).data;
+      let total = 0;
+      for(let i = 0; i < data.length; i += 16){
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        total += 0.299 * r + 0.587 * g + 0.114 * b;
+      }
+      const samples = data.length / 16;
+      const avg = total / samples;
+      if(avg >= 125){ return { tone:'ok', label:'適正', hint:'明るさは問題ありません。' }; }
+      if(avg >= 90){ return { tone:'warn', label:'やや暗い', hint:'できればもう少し明るい場所で撮影してください。' }; }
+      return { tone:'ng', label:'暗い', hint:'明るい場所で撮影してください。' };
+    }
+
+    function fallbackAssessment(brightness){
+      return {
+        face:{ tone:'warn', label:'手動確認', hint:'顔の位置はガイド枠で確認してください。' },
+        position:{ tone:'warn', label:'手動確認', hint:'顔を白枠の中央に合わせてください。' },
+        size:{ tone:'warn', label:'手動確認', hint:'顔が枠の6〜7割程度になるよう調整してください。' },
+        brightness,
+        ready: brightness.tone !== 'ng',
+        message: brightness.tone === 'ng' ? '暗いため、明るい場所で再度撮影してください。' : 'ガイド枠に合わせて問題なければ撮影できます。'
+      };
+    }
+
+    function assessWithFaces(faces, width, height, brightness){
+      if(!faces || faces.length === 0){
+        return {
+          face:{ tone:'ng', label:'顔なし', hint:'顔が検出できません。中央に移動してください。' },
+          position:{ tone:'warn', label:'未確認', hint:'顔が映る位置に調整してください。' },
+          size:{ tone:'warn', label:'未確認', hint:'顔が映るまで判定できません。' },
+          brightness,
+          ready:false,
+          message:'顔をガイド枠の中央に合わせてください。'
+        };
+      }
+      if(faces.length > 1){
+        return {
+          face:{ tone:'ng', label:'複数人', hint:'画面には1人だけ映るようにしてください。' },
+          position:{ tone:'warn', label:'未確認', hint:'1人だけ映る状態にしてください。' },
+          size:{ tone:'warn', label:'未確認', hint:'1人だけ映る状態にしてください。' },
+          brightness,
+          ready:false,
+          message:'複数人が映っています。1人だけにしてください。'
+        };
+      }
+
+      const box = faces[0].boundingBox;
+      const centerX = box.x + box.width / 2;
+      const centerY = box.y + box.height / 2;
+      const guideCenterX = width / 2;
+      const guideCenterY = height * .44;
+      const dx = Math.abs(centerX - guideCenterX) / width;
+      const dy = Math.abs(centerY - guideCenterY) / height;
+      const faceRatio = box.height / height;
+
+      let position;
+      if(dx < .08 && dy < .08){
+        position = { tone:'ok', label:'中央', hint:'顔の位置は適正です。' };
+      }else if(dx < .14 && dy < .14){
+        position = { tone:'warn', label:'ややずれ', hint:'もう少し中央に寄せてください。' };
+      }else{
+        position = { tone:'ng', label:'ずれ大', hint:'顔を中央へ移動してください。' };
+      }
+
+      let size;
+      if(faceRatio >= .28 && faceRatio <= .46){
+        size = { tone:'ok', label:'適正', hint:'顔の大きさは適正です。' };
+      }else if((faceRatio >= .22 && faceRatio < .28) || (faceRatio > .46 && faceRatio <= .54)){
+        size = { tone:'warn', label:'やや不適', hint: faceRatio < .28 ? '少し近づいてください。' : '少し離れてください。' };
+      }else{
+        size = { tone:'ng', label:'不適', hint: faceRatio < .28 ? '顔が小さいです。近づいてください。' : '顔が大きすぎます。少し離れてください。' };
+      }
+
+      const face = { tone:'ok', label:'1人検出', hint:'1人のみ検出できています。' };
+      const ready = [position.tone, size.tone, brightness.tone].every(v => v === 'ok');
+      const message = ready ? 'このまま撮影できます。' : '位置・大きさ・明るさを調整してください。';
+
+      return { face, position, size, brightness, ready, message };
+    }
+
+    async function assessFrame(){
+      if(!state.stream || state.captureBlob || els.video.readyState < 2) return;
+      const canvas = els.analysisCanvas;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const vw = els.video.videoWidth || 720;
+      const vh = els.video.videoHeight || 960;
+      canvas.width = 360;
+      canvas.height = Math.round((vh / vw) * 360);
+      ctx.drawImage(els.video, 0, 0, canvas.width, canvas.height);
+
+      const brightness = assessBrightness(ctx, canvas.width, canvas.height);
+      let assessment;
+      if(state.detector){
+        try{
+          const faces = await state.detector.detect(canvas);
+          assessment = assessWithFaces(faces, canvas.width, canvas.height, brightness);
+        }catch(error){
+          console.warn(error);
+          assessment = fallbackAssessment(brightness);
+        }
+      }else{
+        assessment = fallbackAssessment(brightness);
+      }
+      renderAssessment(assessment);
+    }
+
+    function renderAssessment(assessment){
+      setBadge(els.faceStatus, assessment.face.tone, assessment.face.label);
+      setBadge(els.positionStatus, assessment.position.tone, assessment.position.label);
+      setBadge(els.sizeStatus, assessment.size.tone, assessment.size.label);
+      setBadge(els.brightnessStatus, assessment.brightness.tone, assessment.brightness.label);
+
+      els.faceHint.textContent = assessment.face.hint;
+      els.positionHint.textContent = assessment.position.hint;
+      els.sizeHint.textContent = assessment.size.hint;
+      els.brightnessHint.textContent = assessment.brightness.hint;
+      els.captureReadiness.textContent = assessment.ready ? '撮影できます。' : '調整してください。';
+      els.guideMessage.textContent = assessment.message;
+    }
+
+    async function capturePhoto(){
+      if(!state.stream) return;
+      const canvas = els.captureCanvas;
+      const ctx = canvas.getContext('2d');
+      const vw = els.video.videoWidth || 720;
+      const vh = els.video.videoHeight || 960;
+      canvas.width = vw;
+      canvas.height = vh;
+      ctx.drawImage(els.video, 0, 0, vw, vh);
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .92));
+      if(!blob){
+        alert('写真生成に失敗しました。再度お試しください。');
+        return;
+      }
+      setCaptureBlob(blob, 'カメラ撮影');
+      els.guideMessage.textContent = '撮影しました。確認へ進むか、撮り直してください。';
+      els.captureReadiness.textContent = '撮影済みです。';
+      updateStepButtons();
+    }
+
+    function setCaptureBlob(blob, method){
+      if(state.captureUrl && state.captureUrl.startsWith('blob:')){
+        URL.revokeObjectURL(state.captureUrl);
+      }
+      state.captureBlob = blob;
+      state.captureUrl = URL.createObjectURL(blob);
+      state.sourceMethod = method;
+      els.previewImage.src = state.captureUrl;
+      els.previewImage.classList.remove('hidden');
+      els.reviewImage.src = state.captureUrl;
+      els.video.classList.add('hidden');
+      els.cameraOverlay.classList.add('hidden');
+      updateStepButtons();
+    }
+
+    function clearCapture(resetAll = true){
+      if(state.captureUrl && state.captureUrl.startsWith('blob:')){
+        URL.revokeObjectURL(state.captureUrl);
+      }
+      state.captureBlob = null;
+      state.captureUrl = '';
+      state.sourceMethod = '';
+      els.previewImage.src = '';
+      els.previewImage.classList.add('hidden');
+      els.reviewImage.src = '';
+      els.video.classList.remove('hidden');
+      els.cameraOverlay.classList.remove('hidden');
+      if(resetAll){
+        resetAssessment();
+      }
+      updateStepButtons();
+    }
+
+    async function switchCamera(){
+      if(!state.devices.length) return;
+      const currentIndex = state.devices.findIndex(d => d.deviceId === state.currentDeviceId);
+      const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % state.devices.length : 0;
+      const nextDevice = state.devices[nextIndex];
+      state.facingMode = state.facingMode === 'user' ? 'environment' : 'user';
+      await startCamera(nextDevice.deviceId);
+    }
+
+    async function useSelectedCamera(){
+      const deviceId = els.cameraSelect.value;
+      if(deviceId){
+        await startCamera(deviceId);
+      }
+    }
+
+    async function handleFileInput(event){
+      const file = event.target.files && event.target.files[0];
+      if(!file) return;
+      setCaptureBlob(file, '写真ファイル選択');
+      setBadge(els.faceStatus, 'warn', '手動確認');
+      setBadge(els.positionStatus, 'warn', '手動確認');
+      setBadge(els.sizeStatus, 'warn', '手動確認');
+      setBadge(els.brightnessStatus, 'warn', '手動確認');
+      els.faceHint.textContent = '選択した写真です。プレビューを見て確認してください。';
+      els.positionHint.textContent = '顔の位置を確認してください。';
+      els.sizeHint.textContent = '顔の大きさを確認してください。';
+      els.brightnessHint.textContent = '明るさを確認してください。';
+      els.captureReadiness.textContent = '写真を読み込みました。';
+      els.guideMessage.textContent = '写真を読み込みました。確認へ進むか、別の写真を選択してください。';
+      showStep(4);
+      event.target.value = '';
+    }
+
+    function syncReview(){
+      els.reviewCode.textContent = els.employeeCode.value.trim() || '-';
+      els.reviewName.textContent = els.employeeName.value.trim() || '-';
+      els.reviewFile.textContent = buildFilename();
+      els.reviewMethod.textContent = state.sourceMethod || '-';
+      els.submitHint.textContent = APP_CONFIG.uploadEndpoint
+        ? '送信先が設定されています。提出するとアップロードを実行します。'
+        : '送信先APIが未設定のため、提出時はデモ完了画面に遷移します。本番利用時はアップロード先を設定してください。';
+      updateStepButtons();
+    }
+
+    function downloadCapture(){
+      if(!state.captureBlob) return;
+      const url = URL.createObjectURL(state.captureBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = buildFilename();
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function submitCapture(){
+      if(!state.captureBlob) return;
+
+      const filename = buildFilename();
+      if(!APP_CONFIG.uploadEndpoint){
+        state.submitted = true;
+        els.completeFilename.textContent = `提出ファイル名：${filename}`;
+        els.completeMessage.textContent = 'デモ環境のため実アップロードは行っていません。画面・ファイル名・提出導線の確認用として完了しています。';
+        showStep(5);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('employeeCode', els.employeeCode.value.trim());
+      formData.append('employeeName', els.employeeName.value.trim());
+      formData.append('fileName', filename);
+      formData.append('photo', new File([state.captureBlob], filename, { type: 'image/jpeg' }));
+
+      const originalText = els.submitBtn.textContent;
+      els.submitBtn.disabled = true;
+      els.submitBtn.textContent = '提出中...';
+
+      try{
+        const response = await fetch(APP_CONFIG.uploadEndpoint, { method:'POST', body:formData });
+        if(!response.ok){
+          throw new Error(`HTTP ${response.status}`);
+        }
+        state.submitted = true;
+        els.completeFilename.textContent = `提出ファイル名：${filename}`;
+        els.completeMessage.textContent = '提出が完了しました。必要に応じて人事担当者からご連絡する場合があります。';
+        showStep(5);
+      }catch(error){
+        console.error(error);
+        alert('提出に失敗しました。通信環境または送信先設定をご確認ください。');
+      }finally{
+        els.submitBtn.textContent = originalText;
+        updateStepButtons();
+      }
+    }
+
+    function restart(){
+      stopStream();
+      clearCapture(true);
+      state.submitted = false;
+      state.sourceMethod = '';
+      els.employeeCode.value = '';
+      els.employeeName.value = '';
+      updateFilename();
+      resetAssessment();
+      showStep(1);
+    }
+
+    els.employeeCode.addEventListener('input', updateFilename);
+    els.employeeName.addEventListener('input', updateFilename);
+
+    els.toStep2Btn.addEventListener('click', () => {
+      if(!hasBasicInfo()){
+        alert('従業員コードと氏名を入力してください。');
+        return;
+      }
+      showStep(2);
+    });
+
+    els.toStep3Btn.addEventListener('click', () => showStep(3));
+    els.backToStep1Btn.addEventListener('click', () => showStep(1));
+    els.backToStep2Btn.addEventListener('click', () => showStep(2));
+    els.backToStep3Btn.addEventListener('click', () => showStep(3));
+
+    els.toStep4Btn.addEventListener('click', () => {
+      if(!state.captureBlob){
+        alert('先に撮影または写真選択をしてください。');
+        return;
+      }
+      showStep(4);
+    });
+
+    els.openCameraModeBtn.addEventListener('click', async () => {
+      els.cameraArea.classList.remove('hidden');
+      await startCamera(els.cameraSelect.value);
+    });
+
+    els.openUploadModeBtn.addEventListener('click', () => {
+      els.fileInput.click();
+    });
+
+    els.startCameraBtn.addEventListener('click', () => startCamera(els.cameraSelect.value));
+    els.switchCameraBtn.addEventListener('click', switchCamera);
+    els.captureBtn.addEventListener('click', capturePhoto);
+    els.retakeBtn.addEventListener('click', () => clearCapture(false));
+    els.cameraSelect.addEventListener('change', useSelectedCamera);
+
+    els.fileInput.addEventListener('change', handleFileInput);
+    els.submitBtn.addEventListener('click', submitCapture);
+    els.downloadBtn.addEventListener('click', downloadCapture);
+    els.restartBtn.addEventListener('click', restart);
+
+    window.addEventListener('beforeunload', stopStream);
+
+    resetAssessment();
+    updateFilename();
+    showStep(1);
+  </script>
+</body>
+</html>
