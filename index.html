@@ -218,7 +218,7 @@
   </header>
 
   <main class="shell">
-    <div class="notice">今回は <strong>実ファイルでのみ出力</strong> しています。全画面カメラは維持しつつ、進行ボタンの不具合修正と、安定判定・顔存在メッセージの閾値を調整しています。</div>
+    <div class="notice">今回は <strong>開始ステップの簡易トークン導線</strong> を修正しています。有効トークン入力時に、氏名・従業員コード・所属・提出予定ファイル名を即時表示し、「次へ」が有効になるようにしています。</div>
 
     <section id="employeeApp">
       <div class="hero">
@@ -244,7 +244,7 @@
               <div class="field">
                 <div class="label">簡易トークン</div>
                 <input class="input" id="tokenInput" placeholder="例: demo-000123" />
-                <div class="helper">デモでは署名付きURL相当をトークン文字列で再現しています。</div>
+                <div class="helper">デモでは署名付きURL相当をトークン文字列で再現しています。例: <strong>demo-000123</strong></div><div class="helper" id="tokenStatusText">有効な簡易トークンを入力してください。</div>
               </div>
               <div class="info">
                 <div><strong>氏名</strong>: <span id="employeeNameText">-</span></div>
@@ -540,11 +540,11 @@
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
-    const APP={storageKey:'badge_photo_app_demo_v15'};
+    const APP={storageKey:'badge_photo_app_demo_v16'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
     const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中',prevMotionSignature:null,motionEma:0}};
     const $=id=>document.getElementById(id);
-    const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),guidePanel:$('guidePanel'),closeGuidePanelBtn:$('closeGuidePanelBtn'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect'),stabilityText:$('stabilityText'),stabilityFill:$('stabilityFill')};
+    const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),tokenStatusText:$('tokenStatusText'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),guidePanel:$('guidePanel'),closeGuidePanelBtn:$('closeGuidePanelBtn'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect'),stabilityText:$('stabilityText'),stabilityFill:$('stabilityFill')};
 
     function uid(p){return `${p}_${Math.random().toString(36).slice(2,10)}_${Date.now().toString(36)}`;}
     function nowIso(){return new Date().toISOString();}
@@ -584,7 +584,7 @@
       const mapped=employeeProgressStep(step);
       els.stepIndicators.forEach(dot=>{const s=Number(dot.dataset.step);dot.classList.toggle('active',s===mapped);dot.classList.toggle('done',s<mapped);});
       els.progressFill.style.width=`${(mapped/4)*100}%`;
-      if(step===1){els.backBtn.disabled=true;els.nextBtn.textContent='撮影方法へ進む';els.nextBtn.classList.remove('hidden');}
+      if(step===1){els.backBtn.disabled=true;els.nextBtn.classList.remove('hidden');syncStartStepActionState();}
       else if(step===2){els.backBtn.disabled=false;els.nextBtn.classList.remove('hidden');els.nextBtn.textContent='確認へ進む';}
       else if(step===3){els.backBtn.disabled=false;els.nextBtn.classList.remove('hidden');els.nextBtn.textContent='提出する';fillReview();}
       else if(step===4){els.backBtn.classList.add('hidden');els.nextBtn.classList.add('hidden');}
@@ -600,6 +600,23 @@
       els.employeeCodeText.textContent=emp?.employeeCode||'-';
       els.employeeDeptText.textContent=emp?.departmentName||'-';
       els.employeeFileNameText.textContent=emp?buildLogicalFileName(emp):'-';
+      if(els.tokenStatusText){
+        els.tokenStatusText.textContent = emp ? '対象者情報を確認しました。「次へ」で進めます。' : '有効な簡易トークンを入力してください。';
+        els.tokenStatusText.style.color = emp ? 'var(--ok)' : 'var(--muted)';
+      }
+      syncStartStepActionState();
+    }
+    function syncStartStepActionState(){
+      if(state.employeeStep!==1) return;
+      const valid = !!currentEmployee();
+      els.nextBtn.disabled = !valid;
+      els.nextBtn.textContent = valid ? '撮影方法へ進む' : '有効なトークンを入力してください';
+    }
+    function resolveSession(){
+      const token=(els.tokenInput.value||'').trim();
+      state.employeeSession=findSessionByToken(token);
+      updateEmployeeHeader();
+      return !!state.employeeSession;
     }
     function setCaptureMessage(level,text,note=''){
       els.captureMessage.className=`capture-message ${level}`;
@@ -917,7 +934,6 @@ function useCapturedPhoto(){
   closeCameraOverlay();
   showEmployeeStep(3);
 }
-    function resolveSession(){const token=els.tokenInput.value.trim();state.employeeSession=findSessionByToken(token);updateEmployeeHeader();}
     function fillReview(){
       const emp=currentEmployee();
       if(!emp||!state.employeeCaptureUrl) return;
@@ -1096,9 +1112,9 @@ function useCapturedPhoto(){
     function refreshAdminViews(){populateDeptFilters();renderDashboard();renderList();renderDetail();renderNotifications();renderAudit();renderExports();}
     function employeeNext(){
       if(state.employeeStep===1){
-        resolveSession();
+        const valid = resolveSession();
         const req=currentRequest();
-        if(!req) return alert('有効な簡易トークンを入力してください。例: demo-000123');
+        if(!valid || !req) return alert('有効な簡易トークンを入力してください。例: demo-000123');
         if(req.requestStatus==='expired') return alert('この提出URLは期限超過です。');
         if(req.requestStatus==='rejected') return showEmployeeStep(5);
         showEmployeeStep(2); return;
@@ -1133,7 +1149,7 @@ function useCapturedPhoto(){
     els.switchAdmin.addEventListener('click',()=>{setMode('admin');refreshAdminViews();});
     els.backBtn.addEventListener('click',employeeBack);
     els.nextBtn.addEventListener('click',employeeNext);
-    els.tokenInput.addEventListener('input',resolveSession);
+    ['input','change','blur','keyup'].forEach(evt=>els.tokenInput.addEventListener(evt,resolveSession));
     els.openCameraBtn.addEventListener('click',()=>{clearCapturedState(); openCameraOverlay();});
     els.openFileBtn.addEventListener('click',()=>els.fileInput.click());
     els.resubmitCameraBtn.addEventListener('click',()=>{showEmployeeStep(2); clearCapturedState(); openCameraOverlay();});
@@ -1182,6 +1198,7 @@ function useCapturedPhoto(){
     state.currentRole=els.adminRoleSelect.value;
     updateEmployeeHeader();
     showEmployeeStep(1);
+    syncStartStepActionState();
     refreshAdminViews();
   </script>
 </body>
