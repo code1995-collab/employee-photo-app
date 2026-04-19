@@ -173,7 +173,7 @@
     <div class="topbar-inner">
       <div class="brand">
         <h1>顔写真収集アプリ</h1>
-        <p>v9 実ファイル書き出し版（安定判定チューニング）</p>
+        <p>v11 実ファイル書き出し版（安定バー更新修正版）</p>
       </div>
       <div class="nav-switch">
         <button class="switch-btn active" id="switchEmployee">従業員モード</button>
@@ -731,13 +731,16 @@
       ctx.drawImage(els.cameraVideo,0,0,canvas.width,canvas.height);
       const brightness=assessBrightness(ctx,canvas.width,canvas.height);
       let result;
+      let stability;
+
       if(state.camera.detector){
         try{
           const faces=await state.camera.detector.detect(canvas);
           result=withFaceAssessment(faces,canvas.width,canvas.height,brightness);
+
           if(faces && faces.length===1){
             const box=faces[0].boundingBox;
-            const stability=computeStability({
+            stability=computeStability({
               cx:(box.x+box.width/2)/canvas.width,
               cy:(box.y+box.height/2)/canvas.height,
               size:box.height/canvas.height,
@@ -745,18 +748,22 @@
             });
             result.stability=stability;
           } else {
-            resetStability();
-            result.stability={ok:false,score:0,text:'顔を合わせてください'};
+            stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
+            result.stability={...stability, ok:false, text:'顔を合わせてください'};
+            if(stability.text !== '判定中'){
+              updateStabilityUI(Math.max(18, Math.round(stability.score*0.45)), '顔を合わせてください');
+              result.stability.score = Math.max(18, Math.round(stability.score*0.45));
+            }
           }
         }catch(e){
           result=fallbackAssessment(brightness);
-          resetStability();
-          result.stability={ok:false,score:0,text:'判定中'};
+          stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
+          result.stability=stability;
         }
       } else {
         result=fallbackAssessment(brightness);
-        resetStability();
-        result.stability={ok:false,score:0,text:'判定中'};
+        stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
+        result.stability=stability;
       }
 
       if(result.level==='ok' && result.stability?.ok){
@@ -1039,7 +1046,7 @@
     els.resubmitFileBtn.addEventListener('click',()=>els.fileInput.click());
     els.fileInput.addEventListener('change',e=>handleSelectedFile(e.target.files?.[0]));
     els.closeCameraOverlay.addEventListener('click',closeCameraOverlay);
-    els.cameraInfoBtn.addEventListener('click',()=>alert('顔は中央、肩は下の目安に合わせてください。枠に入ったら、端末を一度止めてから撮影すると安定しやすいです。'));
+    els.cameraInfoBtn.addEventListener('click',()=>alert('顔は中央、肩は下の目安に合わせてください。安定バーは、顔検出がなくても端末の揺れに反応するよう修正しています。'));
     els.overlayFileBtn.addEventListener('click',()=>{closeCameraOverlay();els.fileInput.click();});
     els.overlayCaptureBtn.addEventListener('click',capturePhoto);
     els.overlaySwitchCameraBtn.addEventListener('click',async()=>{
