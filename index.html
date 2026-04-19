@@ -218,7 +218,7 @@
   </header>
 
   <main class="shell">
-    <div class="notice">今回は <strong>実ファイルでのみ出力</strong> しています。全画面カメラは維持しつつ、楕円ガイドをやめて、<strong>顔の位置・大きさ・肩幅の目安が分かる縦長フレーム</strong> に変更しています。</div>
+    <div class="notice">今回は <strong>実ファイルでのみ出力</strong> しています。全画面カメラは維持しつつ、進行ボタンの不具合修正と、安定判定・顔存在メッセージの閾値を調整しています。</div>
 
     <section id="employeeApp">
       <div class="hero">
@@ -540,7 +540,7 @@
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
-    const APP={storageKey:'badge_photo_app_demo_v14'};
+    const APP={storageKey:'badge_photo_app_demo_v15'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
     const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中',prevMotionSignature:null,motionEma:0}};
     const $=id=>document.getElementById(id);
@@ -651,58 +651,82 @@
       }
       return sig;
     }
-    function computeMotionOnlyStability(ctx,w,h){
-      const sig=computeMotionSignature(ctx,w,h);
-      if(!state.camera.prevMotionSignature){
-        state.camera.prevMotionSignature=sig;
-        state.camera.motionEma=0;
-        updateStabilityUI(24,'判定中');
-        return {ok:false,score:24,text:'判定中',motion:0};
-      }
-      let diff=0;
-      for(let i=0;i<sig.length;i++) diff += Math.abs(sig[i]-state.camera.prevMotionSignature[i]);
-      diff /= sig.length;
-      state.camera.prevMotionSignature=sig;
-      state.camera.motionEma = state.camera.motionEma*0.84 + diff*0.16;
-      const motion = state.camera.motionEma;
-      let score = 100 - Math.min(72, motion*3.2);
-      score = Math.max(6, Math.min(100, Math.round(score)));
-      let text='安定';
-      let ok=true;
-      if(motion>24){ text='動きあり'; ok=false; }
-      else if(motion>14){ text='やや不安定'; ok=false; }
-      updateStabilityUI(score,text);
-      return {ok,score,text,motion};
-    }
-    function computeStability(sample){
-      state.camera.history.push(sample);
-      if(state.camera.history.length>12) state.camera.history.shift();
-      if(state.camera.history.length<5){
-        updateStabilityUI(28,'判定中');
-        return {ok:false,score:28,text:'判定中'};
-      }
-      const hist=state.camera.history;
-      const avg = key => hist.reduce((a,b)=>a+b[key],0)/hist.length;
-      const meanCx=avg('cx'), meanCy=avg('cy'), meanSize=avg('size');
-      const mad = (key,m)=> hist.reduce((a,b)=>a+Math.abs(b[key]-m),0)/hist.length;
-      const cxMad=mad('cx',meanCx), cyMad=mad('cy',meanCy), sizeMad=mad('size',meanSize);
-      let score=100;
-      score -= Math.min(22, cxMad*820);
-      score -= Math.min(20, cyMad*760);
-      score -= Math.min(18, sizeMad*920);
-      score = Math.max(0, Math.min(100, Math.round(score)));
-      let text='安定';
-      let ok=true;
-      if(cxMad>0.045 || cyMad>0.05 || sizeMad>0.04){
-        text='動きあり';
-        ok=false;
-      } else if(score<58){
-        text='やや不安定';
-        ok=false;
-      }
-      updateStabilityUI(score, text);
-      return {ok,score,text,cxMad,cyMad,sizeMad};
-    }
+function estimateFaceLikePresence(ctx,w,h,brightness){
+  const faceW=Math.floor(w*0.28), faceH=Math.floor(h*0.28);
+  const sx=Math.floor((w-faceW)/2), sy=Math.floor(h*0.18);
+  const data=ctx.getImageData(sx,sy,faceW,faceH).data;
+  let skin=0, samples=0, contrast=0, lastY=null;
+  for(let i=0;i<data.length;i+=16){
+    const r=data[i], g=data[i+1], b=data[i+2];
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    const y=0.299*r+0.587*g+0.114*b;
+    const cb=128 - 0.168736*r - 0.331264*g + 0.5*b;
+    const cr=128 + 0.5*r - 0.418688*g - 0.081312*b;
+    const rgbSkin = r>95 && g>40 && b>20 && (max-min)>15 && Math.Math.abs(r-g)>15 && r>g && r>b;
+    const ycbcrSkin = cr>133 && cr<180 && cb>85 && cb<140;
+    if(rgbSkin || ycbcrSkin) skin++;
+    if(lastY!==null) contrast += Math.abs(y-lastY);
+    lastY=y;
+    samples++;
+  }
+  const skinRatio=samples?skin/samples:0;
+  const avgContrast=samples?contrast/samples:0;
+  const likely = brightness.tone!=='ng' && skinRatio>=0.10 && avgContrast>=6;
+  return { likely, skinRatio, avgContrast };
+}
+
+function computeMotionOnlyStability(ctx,w,h){
+  const sig=computeMotionSignature(ctx,w,h);
+  if(!state.camera.prevMotionSignature){
+    state.camera.prevMotionSignature=sig;
+    state.camera.motionEma=0;
+    updateStabilityUI(24,'判定中');
+    return {ok:false,score:24,text:'判定中',motion:0};
+  }
+  let diff=0;
+  for(let i=0;i<sig.length;i++) diff += Math.abs(sig[i]-state.camera.prevMotionSignature[i]);
+  diff /= sig.length;
+  state.camera.prevMotionSignature=sig;
+  state.camera.motionEma = state.camera.motionEma*0.90 + diff*0.10;
+  const motion = state.camera.motionEma;
+  let score = 100 - Math.min(58, motion*2.0);
+  score = Math.max(10, Math.min(100, Math.round(score)));
+  let text='安定';
+  let ok=true;
+  if(motion>32){ text='動きあり'; ok=false; }
+  else if(motion>20){ text='やや不安定'; ok=false; }
+  updateStabilityUI(score,text);
+  return {ok,score,text,motion};
+}
+function computeStability(sample){
+  state.camera.history.push(sample);
+  if(state.camera.history.length>10) state.camera.history.shift();
+  if(state.camera.history.length<4){
+    updateStabilityUI(30,'判定中');
+    return {ok:false,score:30,text:'判定中'};
+  }
+  const hist=state.camera.history;
+  const avg = key => hist.reduce((a,b)=>a+b[key],0)/hist.length;
+  const meanCx=avg('cx'), meanCy=avg('cy'), meanSize=avg('size');
+  const mad = (key,m)=> hist.reduce((a,b)=>a+Math.abs(b[key]-m),0)/hist.length;
+  const cxMad=mad('cx',meanCx), cyMad=mad('cy',meanCy), sizeMad=mad('size',meanSize);
+  let score=100;
+  score -= Math.min(18, cxMad*520);
+  score -= Math.min(16, cyMad*500);
+  score -= Math.min(14, sizeMad*620);
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  let text='安定';
+  let ok=true;
+  if(cxMad>0.06 || cyMad>0.07 || sizeMad>0.05){
+    text='動きあり';
+    ok=false;
+  } else if(score<46){
+    text='やや不安定';
+    ok=false;
+  }
+  updateStabilityUI(score, text);
+  return {ok,score,text,cxMad,cyMad,sizeMad};
+}
     async function loadDevices(){
       try{
         const devices=await navigator.mediaDevices.enumerateDevices();
@@ -722,7 +746,6 @@
       clearCapturedState();
       state.camera.overlayOpen=true;
       resetStability();
-      if(els.cameraActions) els.cameraActions.classList.remove('hidden');
       els.cameraOverlay.classList.remove('hidden');
       els.cameraCaptured.classList.add('hidden');
       els.cameraCaptured.src='';
@@ -788,61 +811,69 @@
       else if(brightness.tone==='warn'&&level==='ok'){level='warn';message='もう少し明るい場所だと撮りやすいです。';}
       return {level,message,score:Math.min(100,score),rejectCandidates:[...new Set(rejects)]};
     }
-    async function assessFrame(){
-      if(!state.camera.stream||!state.camera.overlayOpen||state.employeeCaptureBlob||els.cameraVideo.readyState<2) return;
-      const canvas=els.analysisCanvas;
-      const ctx=canvas.getContext('2d',{willReadFrequently:true});
-      const vw=els.cameraVideo.videoWidth||720, vh=els.cameraVideo.videoHeight||960;
-      canvas.width=360; canvas.height=Math.round((vh/vw)*360);
-      ctx.drawImage(els.cameraVideo,0,0,canvas.width,canvas.height);
-      const brightness=assessBrightness(ctx,canvas.width,canvas.height);
-      let result;
-      let stability;
-      let hasFace=false;
+async function assessFrame(){
+  if(!state.camera.stream||!state.camera.overlayOpen||state.employeeCaptureBlob||els.cameraVideo.readyState<2) return;
+  const canvas=els.analysisCanvas;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  const vw=els.cameraVideo.videoWidth||720, vh=els.cameraVideo.videoHeight||960;
+  canvas.width=360; canvas.height=Math.round((vh/vw)*360);
+  ctx.drawImage(els.cameraVideo,0,0,canvas.width,canvas.height);
+  const brightness=assessBrightness(ctx,canvas.width,canvas.height);
+  const presence=estimateFaceLikePresence(ctx,canvas.width,canvas.height,brightness);
+  let result;
+  let stability;
+  let hasFace=false;
+  let faceLikely=presence.likely;
 
-      if(state.camera.detector){
-        try{
-          const faces=await state.camera.detector.detect(canvas);
-          result=withFaceAssessment(faces,canvas.width,canvas.height,brightness);
+  if(state.camera.detector){
+    try{
+      const faces=await state.camera.detector.detect(canvas);
+      result=withFaceAssessment(faces,canvas.width,canvas.height,brightness);
 
-          if(faces && faces.length===1){
-            hasFace=true;
-            const box=faces[0].boundingBox;
-            stability=computeStability({
-              cx:(box.x+box.width/2)/canvas.width,
-              cy:(box.y+box.height/2)/canvas.height,
-              size:box.height/canvas.height,
-              brightness:(brightness.score||0)
-            });
-            result.stability=stability;
-          } else {
-            stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
-            result.stability={...stability, ok:false, text:'顔を合わせてください'};
-            updateStabilityUI(Math.max(20, Math.round(stability.score*0.4)), '顔を合わせてください');
-            result.stability.score = Math.max(20, Math.round(stability.score*0.4));
-          }
-        }catch(e){
-          result=fallbackAssessment(brightness);
-          stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
-          result.stability=stability;
-        }
-      } else {
-        result=fallbackAssessment(brightness);
-        stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
+      if(faces && faces.length===1){
+        hasFace=true;
+        faceLikely=true;
+        const box=faces[0].boundingBox;
+        stability=computeStability({
+          cx:(box.x+box.width/2)/canvas.width,
+          cy:(box.y+box.height/2)/canvas.height,
+          size:box.height/canvas.height,
+          brightness:(brightness.score||0)
+        });
         result.stability=stability;
-      }
-
-      if(hasFace && result.level==='ok' && result.stability?.ok){
-        setCaptureMessage('ok','安定しています。撮影してください。','端末を止めたままシャッターを押してください。');
-      } else if(hasFace && result.level==='ok' && result.stability && !result.stability.ok){
-        setCaptureMessage('warn','顔は合っています。端末を動かさないでください。','細かい揺れが収まると安定判定になります。');
       } else {
-        setCaptureMessage(result.level==='ng'?'ng':'warn',result.message);
+        stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
+        result.stability={...stability, ok:false, text:'顔を合わせてください'};
+        updateStabilityUI(Math.max(20, Math.round(stability.score*0.45)), '顔を合わせてください');
+        result.stability.score = Math.max(20, Math.round(stability.score*0.45));
+        faceLikely=false;
       }
-
-      state.camera.lastAssessment=result;
-      state.employeeQuality=result;
+    }catch(e){
+      result=fallbackAssessment(brightness);
+      stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
+      result.stability=stability;
+      result.faceLikely=faceLikely;
     }
+  } else {
+    result=fallbackAssessment(brightness);
+    stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
+    result.stability=stability;
+    result.faceLikely=faceLikely;
+  }
+
+  if((hasFace || faceLikely) && result.level==='ok' && result.stability?.ok){
+    setCaptureMessage('ok','顔は合っています。撮影してください。','端末を止めたままシャッターを押してください。');
+  } else if((hasFace || faceLikely) && result.level==='ok' && result.stability && !result.stability.ok){
+    setCaptureMessage('warn','顔は合っています。端末を動かさないでください。','細かい揺れが収まると安定判定になります。');
+  } else if(!hasFace && !faceLikely){
+    setCaptureMessage('warn','顔をガイド枠に合わせてください。','頭は上帯、肩は下帯に入るように合わせてください。');
+  } else {
+    setCaptureMessage(result.level==='ng'?'ng':'warn',result.message);
+  }
+
+  state.camera.lastAssessment=result;
+  state.employeeQuality=result;
+}
     function startCameraAssessmentLoop(){if(state.camera.timer) clearInterval(state.camera.timer); state.camera.timer=setInterval(assessFrame,650);}
     async function capturePhoto(){
       if(!state.camera.stream) return;
@@ -878,15 +909,14 @@
       resetStability();
       setCaptureMessage('warn','頭・顔・肩を帯に合わせてください。');
     }
-    function useCapturedPhoto(){
-      if(!state.employeeCaptureBlob||!state.employeeCaptureUrl) return;
-      els.selectedPreviewImage.src=state.employeeCaptureUrl;
-      els.selectedPreviewArea.classList.remove('hidden');
-      closeGuidePanel();
-      if(els.cameraActions) els.cameraActions.classList.remove('hidden');
-      closeCameraOverlay();
-      showEmployeeStep(3);
-    }
+function useCapturedPhoto(){
+  if(!state.employeeCaptureBlob||!state.employeeCaptureUrl) return;
+  els.selectedPreviewImage.src=state.employeeCaptureUrl;
+  els.selectedPreviewArea.classList.remove('hidden');
+  closeGuidePanel();
+  closeCameraOverlay();
+  showEmployeeStep(3);
+}
     function resolveSession(){const token=els.tokenInput.value.trim();state.employeeSession=findSessionByToken(token);updateEmployeeHeader();}
     function fillReview(){
       const emp=currentEmployee();
@@ -1110,8 +1140,8 @@
     els.resubmitFileBtn.addEventListener('click',()=>els.fileInput.click());
     els.fileInput.addEventListener('change',e=>handleSelectedFile(e.target.files?.[0]));
     els.closeCameraOverlay.addEventListener('click',closeCameraOverlay);
-    els.cameraInfoBtn.addEventListener('click',()=>{els.guidePanel.classList.remove('hidden');});
-    els.closeGuidePanelBtn.addEventListener('click',()=>{els.guidePanel.classList.add('hidden');});
+    els.cameraInfoBtn.addEventListener('click',openGuidePanel);
+    els.closeGuidePanelBtn.addEventListener('click',closeGuidePanel);
     els.overlayFileBtn.addEventListener('click',()=>{closeCameraOverlay();els.fileInput.click();});
     els.overlayCaptureBtn.addEventListener('click',capturePhoto);
     els.overlaySwitchCameraBtn.addEventListener('click',async()=>{
