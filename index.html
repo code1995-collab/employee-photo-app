@@ -606,11 +606,18 @@
       }
       syncStartStepActionState();
     }
+function openGuidePanel(){
+  if(els.guidePanel) els.guidePanel.classList.remove('hidden');
+}
+function closeGuidePanel(){
+  if(els.guidePanel) els.guidePanel.classList.add('hidden');
+}
     function syncStartStepActionState(){
       if(state.employeeStep!==1) return;
       const valid = !!currentEmployee();
       els.nextBtn.disabled = !valid;
       els.nextBtn.textContent = valid ? '撮影方法へ進む' : '有効なトークンを入力してください';
+      if(els.nextBtn) els.nextBtn.title = valid ? '' : '有効な簡易トークン入力後に進めます';
     }
     function resolveSession(){
       const token=(els.tokenInput.value||'').trim();
