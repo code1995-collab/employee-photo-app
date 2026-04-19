@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>顔写真収集アプリ - v13 実ファイル版</title>
+  <title>顔写真収集アプリ - v22 実ファイル版</title>
   <style>
     :root{
       --primary:#002045; --primary2:#123d6b; --bg:#f7fafc; --surface:#fff; --line:#dbe4ee;
@@ -18,6 +18,8 @@
     .topbar-inner{max-width:1180px;margin:0 auto;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px}
     .brand h1{margin:0;font-size:22px;color:var(--primary)}
     .brand p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+    .brand a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+    .brand a:hover{color:var(--primary)}
     .nav-switch{display:flex;gap:10px;flex-wrap:wrap}
     .switch-btn,.subnav-btn,.btn,.text-link,.icon-btn{border:none;cursor:pointer}
     .switch-btn{padding:10px 16px;border-radius:999px;background:#eaf1f8;color:var(--primary);font-weight:800}
@@ -142,7 +144,7 @@
       background:rgba(255,255,255,.98); box-shadow:0 0 0 6px rgba(255,255,255,.14);
     }
     .guide-top-dot{ top:5%; }
-    .guide-chin-dot{ top:47%; }
+    .guide-chin-dot{ top:88%; }
     .guide-shoulder-line{
       position:absolute; left:16%; right:16%; top:63%;
       border-top:3px dashed rgba(255,255,255,.86);
@@ -198,6 +200,12 @@
     .stability-track{height:8px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
     .stability-fill{height:100%;width:0;background:linear-gradient(90deg,#7aa6d8,#ffffff);transition:width .18s ease}
 
+    .readiness-chips{max-width:680px;width:100%;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .readiness-chip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);font-size:11px;font-weight:800;color:#fff;opacity:.9}
+    .readiness-chip.ok{background:rgba(17,122,73,.18);border-color:rgba(147,233,182,.24)}
+    .readiness-chip.warn{background:rgba(183,121,31,.22);border-color:rgba(255,214,143,.24)}
+    .readiness-chip.neutral{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.14)}
+
     @media (max-width:1024px){
       .layout-admin{grid-template-columns:1fr}
       .toolbar{grid-template-columns:1fr 1fr}
@@ -218,7 +226,7 @@
     <div class="topbar-inner">
       <div class="brand">
         <h1>顔写真収集アプリ</h1>
-        <p>v11 実ファイル書き出し版（安定バー更新修正版）</p>
+        <p><a href="#" id="versionInfoLink">v22 実ファイル書き出し版（ガイド枠調整 + 受け身の撮影ガイド追加）</a></p>
       </div>
       <div class="nav-switch">
         <button class="switch-btn active" id="switchEmployee">従業員モード</button>
@@ -503,7 +511,7 @@
       <video id="cameraVideo" class="camera-video" autoplay muted playsinline></video>
       <img id="cameraCaptured" class="camera-captured hidden" alt="captured">
       <div class="camera-overlay-mask" id="cameraMaskLayer">
-        <div class="guide-label">顔全体は楕円、胸上は枠の中に収める</div>
+        <div class="guide-label">顔全体を楕円に、胸上を外枠に収める</div>
         <div class="guide-frame">
           <div class="guide-bust-zone"></div>
           <div class="guide-center-line"></div>
@@ -532,6 +540,11 @@
         <div class="stability-row"><span class="stability-label">安定判定</span><span class="stability-value" id="stabilityText">調整中</span></div>
         <div class="stability-track"><div class="stability-fill" id="stabilityFill"></div></div>
       </div>
+      <div class="readiness-chips" id="readinessChips" aria-live="polite">
+        <div class="readiness-chip neutral" id="chipFraming">画角: 調整中</div>
+        <div class="readiness-chip neutral" id="chipLighting">明るさ: 調整中</div>
+        <div class="readiness-chip neutral" id="chipStability">安定: 調整中</div>
+      </div>
       <div class="btn-row hidden" id="overlayRetakeArea" style="justify-content:center">
         <button class="btn secondary" id="overlayRetakeBtn">撮り直す</button>
         <button class="btn primary" id="overlayUsePhotoBtn">この写真で進む</button>
@@ -551,7 +564,7 @@
 
   <section id="releasePanel" class="guide-panel hidden" aria-live="polite">
     <h4>この版の変更点</h4>
-    <p>v21 では、崩れていた UI を安定していた版に戻したうえで、撮影ガイドを「顔のクローズアップ」ではなく「証明写真のバストアップ画角」前提に作り直しています。右上のガイド表示と左上の版情報リンクも使えるように整理しています。</p>
+    <p>v22 では、証明写真のバストアップ画角に合わせてガイド枠を微調整し、顎位置の目安を修正しています。加えて、撮影者のUXを妨げにくい受け身の撮影ガイドとして、画角・明るさ・安定の小さな状態チップを追加しています。</p>
     <div class="btn-row">
       <button class="btn secondary" id="closeReleasePanelBtn">閉じる</button>
     </div>
@@ -561,11 +574,11 @@
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
-    const APP={storageKey:'badge_photo_app_demo_v21'};
+    const APP={storageKey:'badge_photo_app_demo_v22'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
     const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中',prevMotionSignature:null,motionEma:0}};
     const $=id=>document.getElementById(id);
-    const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),tokenStatusText:$('tokenStatusText'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),guidePanel:$('guidePanel'),closeGuidePanelBtn:$('closeGuidePanelBtn'),releasePanel:$('releasePanel'),closeReleasePanelBtn:$('closeReleasePanelBtn'),versionInfoLink:$('versionInfoLink'),cameraActions:$('cameraActions'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect'),stabilityText:$('stabilityText'),stabilityFill:$('stabilityFill')};
+    const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),tokenStatusText:$('tokenStatusText'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),guidePanel:$('guidePanel'),closeGuidePanelBtn:$('closeGuidePanelBtn'),releasePanel:$('releasePanel'),closeReleasePanelBtn:$('closeReleasePanelBtn'),versionInfoLink:$('versionInfoLink'),cameraActions:$('cameraActions'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect'),stabilityText:$('stabilityText'),stabilityFill:$('stabilityFill'),chipFraming:$('chipFraming'),chipLighting:$('chipLighting'),chipStability:$('chipStability')};
 
     function uid(p){return `${p}_${Math.random().toString(36).slice(2,10)}_${Date.now().toString(36)}`;}
     function nowIso(){return new Date().toISOString();}
@@ -655,7 +668,7 @@ function closeReleasePanel(){
     function setCaptureMessage(level,text,note=''){
       els.captureMessage.className=`capture-message ${level}`;
       els.captureMessage.textContent=text;
-      els.cameraMiniNote.textContent=note||(level==='ok'?'写りがよければ、そのまま撮影してください。':'頭頂は上の点、あごは中央の点、肩は下の線に合わせてください。');
+      els.cameraMiniNote.textContent=note||(level==='ok'?'写りがよければ、そのまま撮影してください。':'顔全体を楕円に、胸上を外枠に収めてください。');
     }
     function resetStability(){
       state.camera.history=[];
@@ -665,6 +678,7 @@ function closeReleasePanel(){
       state.camera.motionEma=0;
       if(els.stabilityText) els.stabilityText.textContent='調整中';
       if(els.stabilityFill) els.stabilityFill.style.width='0%';
+      updateReadinessChips();
     }
     function clearCapturedState(){
       if(state.employeeCaptureUrl?.startsWith('blob:')) URL.revokeObjectURL(state.employeeCaptureUrl);
@@ -683,6 +697,16 @@ function closeReleasePanel(){
       state.camera.stableText=text;
       if(els.stabilityText) els.stabilityText.textContent=text;
       if(els.stabilityFill) els.stabilityFill.style.width=`${quantized}%`;
+    }
+    function setChip(el,status,text){
+      if(!el) return;
+      el.className=`readiness-chip ${status}`;
+      el.textContent=text;
+    }
+    function updateReadinessChips({framing='調整中', framingStatus='neutral', lighting='調整中', lightingStatus='neutral', stability='調整中', stabilityStatus='neutral'}={}){
+      setChip(els.chipFraming, framingStatus, `画角: ${framing}`);
+      setChip(els.chipLighting, lightingStatus, `明るさ: ${lighting}`);
+      setChip(els.chipStability, stabilityStatus, `安定: ${stability}`);
     }
     function computeMotionSignature(ctx,w,h){
       const cropW=Math.floor(w*0.42), cropH=Math.floor(h*0.52);
@@ -868,7 +892,8 @@ async function assessFrame(){
   if(!state.camera.stream||!state.camera.overlayOpen||state.employeeCaptureBlob) return;
   try{
     if((els.cameraVideo.videoWidth||0) < 60 || (els.cameraVideo.videoHeight||0) < 60){
-      setCaptureMessage('warn','映像を準備しています。少しお待ちください。','映像が出たら頭頂・あご・肩を目安に合わせてください。');
+      updateReadinessChips();
+      setCaptureMessage('warn','映像を準備しています。少しお待ちください。','映像が出たら顔全体を楕円に、胸上を枠に合わせてください。');
       return;
     }
 
@@ -918,14 +943,28 @@ async function assessFrame(){
       result.stability=stability;
     }
 
+    const framingOk = (hasFace || faceLikely) && !/近づいてください|離れてください|中央/i.test(result.message||'');
+    const lightingLabel = brightness.tone==='ok' ? '良好' : brightness.tone==='warn' ? 'やや注意' : '不足';
+    const lightingStatus = brightness.tone==='ok' ? 'ok' : brightness.tone==='warn' ? 'warn' : 'warn';
+    const stabilityLabel = result.stability?.ok ? '良好' : (result.stability?.text || '調整中');
+    const stabilityStatus = result.stability?.ok ? 'ok' : (result.stability?.score >= 40 ? 'warn' : 'neutral');
+    updateReadinessChips({
+      framing: !hasFace && !faceLikely ? '未検出' : framingOk ? '良好' : '調整中',
+      framingStatus: !hasFace && !faceLikely ? 'warn' : framingOk ? 'ok' : 'warn',
+      lighting: lightingLabel,
+      lightingStatus: lightingStatus,
+      stability: stabilityLabel,
+      stabilityStatus: stabilityStatus
+    });
+
     if((hasFace || faceLikely) && (result.level==='ok' || result.level==='warn') && result.stability?.ok){
-      setCaptureMessage('ok','顔は合っています。撮影してください。','端末を止めたままシャッターを押してください。');
+      setCaptureMessage('ok','画角は合っています。撮影してください。','顔全体は楕円に、胸上は外枠に収まっていれば問題ありません。');
     } else if((hasFace || faceLikely) && (result.level==='ok' || result.level==='warn') && result.stability && !result.stability.ok){
-      setCaptureMessage('warn','顔は合っています。端末を動かさないでください。','細かい揺れが収まると安定判定になります。');
+      setCaptureMessage('warn','画角は合っています。端末を少し止めてください。','細かい揺れが収まると安定判定になります。');
     } else if(!hasFace && !faceLikely){
-      setCaptureMessage('warn','顔をガイド枠に合わせてください。','頭頂は上の点、あごは中央の点、肩は下の線に合わせてください。');
+      setCaptureMessage('warn','顔をガイド枠に合わせてください。','顔全体を楕円に、胸上を外枠に収めてください。');
     } else {
-      setCaptureMessage(result.level==='ng'?'ng':'warn',result.message);
+      setCaptureMessage(result.level==='ng'?'ng':'warn',result.message, '顔全体を楕円に、胸上を外枠に収めてください。');
     }
 
     state.camera.lastAssessment=result;
@@ -933,7 +972,8 @@ async function assessFrame(){
   }catch(err){
     console.error(err);
     updateStabilityUI(20,'調整中');
-    setCaptureMessage('warn','頭頂・あご・肩を目安に合わせてください。','判定を再試行しています。');
+    updateReadinessChips();
+    setCaptureMessage('warn','顔全体を楕円に、胸上を外枠に収めてください。','判定を再試行しています。');
   }
 }
 function startCameraAssessmentLoop(){
