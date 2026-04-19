@@ -491,7 +491,7 @@
   <script>
     const APP={storageKey:'badge_photo_app_demo_v9'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
-    const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中'}};
+    const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中',prevMotionSignature:null,motionEma:0}};
     const $=id=>document.getElementById(id);
     const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect'),stabilityText:$('stabilityText'),stabilityFill:$('stabilityFill')};
 
@@ -559,6 +559,8 @@
       state.camera.history=[];
       state.camera.stableScore=0;
       state.camera.stableText='調整中';
+      state.camera.prevMotionSignature=null;
+      state.camera.motionEma=0;
       if(els.stabilityText) els.stabilityText.textContent='調整中';
       if(els.stabilityFill) els.stabilityFill.style.width='0%';
     }
@@ -568,35 +570,75 @@
       if(els.stabilityText) els.stabilityText.textContent=text;
       if(els.stabilityFill) els.stabilityFill.style.width=`${Math.max(0,Math.min(100,score))}%`;
     }
+    function computeMotionSignature(ctx,w,h){
+      const cropW=Math.floor(w*0.42), cropH=Math.floor(h*0.52);
+      const sx=Math.floor((w-cropW)/2), sy=Math.floor((h-cropH)/2);
+      const data=ctx.getImageData(sx,sy,cropW,cropH).data;
+      const gridX=10, gridY=14;
+      const stepX=Math.max(1,Math.floor(cropW/gridX)), stepY=Math.max(1,Math.floor(cropH/gridY));
+      const sig=[];
+      for(let gy=0; gy<gridY; gy++){
+        for(let gx=0; gx<gridX; gx++){
+          const px=Math.min(cropW-1, gx*stepX + Math.floor(stepX/2));
+          const py=Math.min(cropH-1, gy*stepY + Math.floor(stepY/2));
+          const idx=(py*cropW+px)*4;
+          const y=0.299*data[idx]+0.587*data[idx+1]+0.114*data[idx+2];
+          sig.push(y);
+        }
+      }
+      return sig;
+    }
+    function computeMotionOnlyStability(ctx,w,h){
+      const sig=computeMotionSignature(ctx,w,h);
+      if(!state.camera.prevMotionSignature){
+        state.camera.prevMotionSignature=sig;
+        state.camera.motionEma=0;
+        updateStabilityUI(24,'判定中');
+        return {ok:false,score:24,text:'判定中',motion:0};
+      }
+      let diff=0;
+      for(let i=0;i<sig.length;i++) diff += Math.abs(sig[i]-state.camera.prevMotionSignature[i]);
+      diff /= sig.length;
+      state.camera.prevMotionSignature=sig;
+      state.camera.motionEma = state.camera.motionEma*0.72 + diff*0.28;
+      const motion = state.camera.motionEma;
+      let score = 100 - Math.min(82, motion*5.5);
+      score = Math.max(6, Math.min(100, Math.round(score)));
+      let text='安定';
+      let ok=true;
+      if(motion>18){ text='動きあり'; ok=false; }
+      else if(motion>10){ text='やや不安定'; ok=false; }
+      updateStabilityUI(score,text);
+      return {ok,score,text,motion};
+    }
     function computeStability(sample){
       state.camera.history.push(sample);
-      if(state.camera.history.length>10) state.camera.history.shift();
-      if(state.camera.history.length<6){
-        updateStabilityUI(20,'判定中');
-        return {ok:false,score:20,text:'判定中'};
+      if(state.camera.history.length>12) state.camera.history.shift();
+      if(state.camera.history.length<5){
+        updateStabilityUI(28,'判定中');
+        return {ok:false,score:28,text:'判定中'};
       }
       const hist=state.camera.history;
       const avg = key => hist.reduce((a,b)=>a+b[key],0)/hist.length;
-      const meanCx=avg('cx'), meanCy=avg('cy'), meanSize=avg('size'), meanB=avg('brightness');
+      const meanCx=avg('cx'), meanCy=avg('cy'), meanSize=avg('size');
       const mad = (key,m)=> hist.reduce((a,b)=>a+Math.abs(b[key]-m),0)/hist.length;
-      const cxMad=mad('cx',meanCx), cyMad=mad('cy',meanCy), sizeMad=mad('size',meanSize), bMad=mad('brightness',meanB);
+      const cxMad=mad('cx',meanCx), cyMad=mad('cy',meanCy), sizeMad=mad('size',meanSize);
       let score=100;
-      score -= Math.min(35, cxMad*1800);
-      score -= Math.min(25, cyMad*1500);
-      score -= Math.min(25, sizeMad*1800);
-      score -= Math.min(15, bMad*0.7);
+      score -= Math.min(28, cxMad*1200);
+      score -= Math.min(24, cyMad*1050);
+      score -= Math.min(22, sizeMad*1300);
       score = Math.max(0, Math.min(100, Math.round(score)));
       let text='安定';
       let ok=true;
-      if(cxMad>0.018 || cyMad>0.022 || sizeMad>0.018){
+      if(cxMad>0.028 || cyMad>0.032 || sizeMad>0.026){
         text='動きあり';
         ok=false;
-      } else if(score<72){
+      } else if(score<68){
         text='やや不安定';
         ok=false;
       }
       updateStabilityUI(score, text);
-      return {ok,score,text,cxMad,cyMad,sizeMad,bMad};
+      return {ok,score,text,cxMad,cyMad,sizeMad};
     }
     async function loadDevices(){
       try{
