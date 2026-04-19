@@ -108,31 +108,68 @@
     .camera-overlay-mask{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.26),rgba(0,0,0,.06) 18%,rgba(0,0,0,.06) 82%,rgba(0,0,0,.28))}
     .guide-frame{
       position:absolute; left:50%; top:47%; transform:translate(-50%,-50%);
-      width:min(64vw,360px); height:min(74vh,540px);
-      border:4px solid rgba(255,255,255,.96); border-radius:30px;
-      box-shadow:0 0 0 200vmax rgba(7,14,24,.35);
+      width:min(66vw,372px); height:min(76vh,560px);
+      border:3px solid rgba(255,255,255,.96); border-radius:32px;
+      box-shadow:0 0 0 200vmax rgba(7,14,24,.34);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
     }
     .guide-frame::before,.guide-frame::after{
-      content:""; position:absolute; left:14%; right:14%;
-      border-top:2px dashed rgba(255,255,255,.82);
+      content:""; position:absolute; width:28px; height:28px; border-color:#fff; opacity:.95;
     }
-    .guide-frame::before{top:24%}
-    .guide-frame::after{top:56%}
-    .guide-head{
-      position:absolute; left:50%; top:15%; transform:translateX(-50%);
-      width:36%; height:20%;
-      border:2px solid rgba(255,255,255,.72); border-radius:50%;
+    .guide-frame::before{
+      left:10px; top:10px; border-top:4px solid #fff; border-left:4px solid #fff; border-radius:12px 0 0 0;
+      box-shadow: calc(100% - 48px) 0 0 0 transparent, 0 calc(100% - 48px) 0 0 transparent;
     }
-    .guide-shoulder{
-      position:absolute; left:50%; bottom:10%; transform:translateX(-50%);
-      width:68%; height:20%;
-      border:2px solid rgba(255,255,255,.6); border-bottom:none;
-      border-radius:50% 50% 0 0;
+    .guide-frame::after{
+      right:10px; bottom:10px; border-right:4px solid #fff; border-bottom:4px solid #fff; border-radius:0 0 12px 0;
     }
+    .guide-head-zone{
+      position:absolute; left:50%; top:11%; transform:translateX(-50%);
+      width:40%; height:18%; border:2px dashed rgba(255,255,255,.88); border-radius:50%;
+      background:rgba(255,255,255,.05);
+    }
+    .guide-eye-line,.guide-chin-line{
+      position:absolute; left:12%; right:12%; border-top:2px dashed rgba(255,255,255,.8);
+    }
+    .guide-eye-line{top:34%}
+    .guide-chin-line{top:49%}
+    .guide-shoulder-band{
+      position:absolute; left:10%; right:10%; bottom:11%; height:18%;
+      border:2px dashed rgba(255,255,255,.82); border-radius:24px 24px 18px 18px;
+      background:rgba(255,255,255,.05);
+    }
+    .guide-frame-label{
+      position:absolute; left:50%; transform:translateX(-50%);
+      padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-size:11px; font-weight:900;
+      border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(8px);
+    }
+    .guide-frame-label.head{top:8px}
+    .guide-frame-label.shoulder{bottom:8px}
     .guide-label{
-      position:absolute; left:50%; top:calc(47% - min(37vh,270px) - 42px); transform:translateX(-50%);
+      position:absolute; left:50%; top:calc(47% - min(39vh,290px) - 44px); transform:translateX(-50%);
       padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-size:12px; font-weight:800;
       border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(8px);
+    }
+    .guide-side-note{
+      position:absolute; right:max(12px, calc(50% - min(33vw,186px) - 74px)); top:50%; transform:translateY(-50%);
+      writing-mode:vertical-rl; text-orientation:mixed; padding:10px 8px; border-radius:14px;
+      background:rgba(255,255,255,.12); color:#fff; font-size:11px; font-weight:800; border:1px solid rgba(255,255,255,.16);
+      backdrop-filter:blur(8px);
+    }
+    .camera-help-panel{
+      position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; z-index:4; width:min(320px, calc(100vw - 32px));
+      padding:14px; border-radius:18px; background:rgba(7,14,24,.86); color:#fff; border:1px solid rgba(255,255,255,.14);
+      box-shadow:0 18px 36px rgba(0,0,0,.28); backdrop-filter:blur(12px);
+    }
+    .camera-help-panel h4{margin:0 0 8px;font-size:15px}
+    .camera-help-panel ul{margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:rgba(255,255,255,.88)}
+    .camera-help-close{position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:10px; background:rgba(255,255,255,.12); color:#fff}
+    .readiness-bar{
+      margin:0 auto; max-width:680px; width:100%; height:8px; border-radius:999px; background:rgba(255,255,255,.14); overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .readiness-fill{
+      height:100%; width:0%; background:linear-gradient(90deg, #7dd3fc, #86efac); transition:width .2s ease;
     }
     .camera-bottom{padding:12px 16px calc(18px + env(safe-area-inset-bottom));position:relative;z-index:2;display:grid;gap:12px;background:linear-gradient(180deg,rgba(8,21,35,0),rgba(8,21,35,.55) 20%,rgba(8,21,35,.82) 48%,rgba(8,21,35,.9))}
     .capture-message{margin:0 auto;max-width:680px;width:100%;padding:12px 14px;border-radius:16px;font-size:15px;font-weight:800;text-align:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px)}
@@ -157,8 +194,9 @@
       .topbar-inner{padding:14px}
       .grid2,.grid3,.split,.toolbar,.metric-grid{grid-template-columns:1fr}
       .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .guide-frame{width:min(76vw,340px);height:min(68vh,500px)}
-      .guide-label{top:calc(47% - min(34vh,240px) - 38px)}
+      .guide-frame{width:min(78vw,340px);height:min(70vh,520px)}
+      .guide-label{top:calc(47% - min(35vh,250px) - 38px)}
+      .guide-side-note{right:8px}
     }
   </style>
 </head>
@@ -448,19 +486,35 @@
       </div>
       <button class="icon-btn" id="cameraInfoBtn">i</button>
     </div>
+    <div id="cameraHelpPanel" class="camera-help-panel hidden">
+      <button class="camera-help-close" id="cameraHelpClose">×</button>
+      <h4>撮影のコツ</h4>
+      <ul>
+        <li>頭頂が上の目安より上に出ないようにする</li>
+        <li>あごが下の破線より少し上にくるようにする</li>
+        <li>肩幅が下の帯の中に収まるようにする</li>
+        <li>明るい場所で、正面を向いて撮影する</li>
+      </ul>
+    </div>
     <div class="camera-stage">
       <video id="cameraVideo" class="camera-video" autoplay muted playsinline></video>
       <img id="cameraCaptured" class="camera-captured hidden" alt="captured">
       <div class="camera-overlay-mask" id="cameraMaskLayer">
-        <div class="guide-label">顔と肩をこの枠に合わせる</div>
+        <div class="guide-label">頭頂・あご・肩をこの枠に合わせる</div>
+        <div class="guide-side-note">肩まで入れる</div>
         <div class="guide-frame">
-          <div class="guide-head"></div>
-          <div class="guide-shoulder"></div>
+          <div class="guide-frame-label head">頭</div>
+          <div class="guide-head-zone"></div>
+          <div class="guide-eye-line"></div>
+          <div class="guide-chin-line"></div>
+          <div class="guide-shoulder-band"></div>
+          <div class="guide-frame-label shoulder">肩</div>
         </div>
       </div>
     </div>
     <div class="camera-bottom">
-      <div id="captureMessage" class="capture-message warn">カメラを起動して、顔を枠の中央に合わせてください。</div>
+      <div id="captureMessage" class="capture-message warn">カメラを起動して、顔と肩を枠に合わせてください。</div>
+      <div class="readiness-bar"><div id="readinessFill" class="readiness-fill"></div></div>
       <div class="camera-actions">
         <button class="side-link" id="overlayFileBtn">写真を選ぶ</button>
         <button class="shutter" id="overlayCaptureBtn" disabled aria-label="撮影"></button>
@@ -481,9 +535,9 @@
   <script>
     const APP={storageKey:'badge_photo_app_demo_v6'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
-    const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]}}};
+    const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,helpOpen:false,stableFrames:0,prevFaceBox:null,autoCaptureFired:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]}}};
     const $=id=>document.getElementById(id);
-    const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect')};
+    const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraHelpPanel:$('cameraHelpPanel'),cameraHelpClose:$('cameraHelpClose'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),readinessFill:$('readinessFill'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect')};
 
     function uid(p){return `${p}_${Math.random().toString(36).slice(2,10)}_${Date.now().toString(36)}`;}
     function nowIso(){return new Date().toISOString();}
@@ -545,6 +599,10 @@
       els.captureMessage.textContent=text;
       els.cameraMiniNote.textContent=note||(level==='ok'?'写りがよければ、そのまま撮影してください。':'頭頂から肩までが枠に収まるように合わせてください。');
     }
+    function setReadiness(score){
+      const v = Math.max(0, Math.min(100, Number(score||0)));
+      els.readinessFill.style.width = `${v}%`;
+    }
     async function loadDevices(){
       try{
         const devices=await navigator.mediaDevices.enumerateDevices();
@@ -560,8 +618,14 @@
     }
     function stopCamera(){if(state.camera.stream){state.camera.stream.getTracks().forEach(t=>t.stop());state.camera.stream=null;} if(state.camera.timer){clearInterval(state.camera.timer);state.camera.timer=null;}}
     function setupDetector(){if('FaceDetector' in window){try{state.camera.detector=new FaceDetector({fastMode:true,maxDetectedFaces:2});return;}catch(e){}}state.camera.detector=null;}
+    
     async function openCameraOverlay(deviceId=''){
       state.camera.overlayOpen=true;
+      state.camera.helpOpen=false;
+      state.camera.stableFrames=0;
+      state.camera.prevFaceBox=null;
+      state.camera.autoCaptureFired=false;
+      els.cameraHelpPanel.classList.add('hidden');
       els.cameraOverlay.classList.remove('hidden');
       els.cameraCaptured.classList.add('hidden');
       els.cameraCaptured.src='';
@@ -569,6 +633,7 @@
       els.cameraMaskLayer.classList.remove('hidden');
       els.overlayRetakeArea.classList.add('hidden');
       els.overlayCaptureBtn.disabled=true;
+      setReadiness(0);
       setCaptureMessage('warn','カメラを起動して、顔と肩を枠に合わせてください。');
       if(!navigator.mediaDevices?.getUserMedia){alert('この端末・ブラウザではカメラに対応していません。保存済み写真を選択してください。');closeCameraOverlay();return;}
       try{
@@ -587,7 +652,16 @@
         startCameraAssessmentLoop();
       }catch(err){console.error(err);alert('カメラを起動できませんでした。保存済み写真を選択してください。');closeCameraOverlay();}
     }
-    function closeCameraOverlay(){state.camera.overlayOpen=false;stopCamera();els.cameraOverlay.classList.add('hidden');}
+    function closeCameraOverlay(){
+      state.camera.overlayOpen=false;
+      state.camera.helpOpen=false;
+      state.camera.stableFrames=0;
+      state.camera.prevFaceBox=null;
+      state.camera.autoCaptureFired=false;
+      els.cameraHelpPanel.classList.add('hidden');
+      stopCamera();
+      els.cameraOverlay.classList.add('hidden');
+    }
     function assessBrightness(ctx,w,h){
       const sampleW=Math.floor(w*.44), sampleH=Math.floor(h*.44);
       const sx=Math.floor((w-sampleW)/2), sy=Math.floor((h-sampleH)/2);
@@ -605,26 +679,42 @@
       const score=Math.min(100,brightness.score+35);
       return {level,message,score,rejectCandidates:brightness.tone==='ng'?['TOO_DARK']:[]};
     }
+    
     function withFaceAssessment(faces,w,h,brightness){
-      if(!faces||faces.length===0) return {level:'warn',message:'顔を枠の中央に合わせてください。',score:20+brightness.score,rejectCandidates:['OTHER']};
-      if(faces.length>1) return {level:'ng',message:'本人だけが写るようにしてください。',score:15+brightness.score,rejectCandidates:['MULTIPLE_PEOPLE']};
+      if(!faces||faces.length===0) return {level:'warn',message:'顔を枠の中央に合わせてください。',score:20+brightness.score,rejectCandidates:['OTHER'],faceBox:null,stable:false};
+      if(faces.length>1) return {level:'ng',message:'本人だけが写るようにしてください。',score:15+brightness.score,rejectCandidates:['MULTIPLE_PEOPLE'],faceBox:null,stable:false};
       const box=faces[0].boundingBox;
       const centerX=box.x+box.width/2, centerY=box.y+box.height/2;
-      const guideX=w/2, guideY=h*0.42;
+      const guideX=w/2, guideY=h*0.40;
       const dx=Math.abs(centerX-guideX)/w, dy=Math.abs(centerY-guideY)/h;
       const ratio=box.height/h;
       let score=brightness.score+10;
       const rejects=[];
       let message='そのままで撮影できます。';
       let level=brightness.tone==='ng'?'ng':'ok';
-      if(dx>0.13||dy>0.16){level='warn';message='顔を枠の中央に合わせてください。';score+=8;} else {score+=22;}
-      if(ratio<0.22){level='warn';message='少し近づいてください。';rejects.push('FACE_TOO_SMALL');score+=6;}
-      else if(ratio<=0.44){score+=22;}
-      else if(ratio>0.56){level='warn';message='少し離れてください。';score+=10;}
-      else {score+=10;}
+
+      if(dx>0.13||dy>0.18){level='warn';message='顔を枠の中央に合わせてください。';score+=8;}
+      else{score+=24;}
+
+      if(ratio<0.23){level='warn';message='少し近づいてください。';rejects.push('FACE_TOO_SMALL');score+=6;}
+      else if(ratio<=0.46){score+=24;}
+      else if(ratio>0.58){level='warn';message='少し離れてください。';score+=10;}
+      else{score+=12;}
+
       if(brightness.tone==='ng'){level='ng';message='明るい場所で撮影してください。';rejects.push('TOO_DARK');}
       else if(brightness.tone==='warn'&&level==='ok'){level='warn';message='もう少し明るい場所だと撮りやすいです。';}
-      return {level,message,score:Math.min(100,score),rejectCandidates:[...new Set(rejects)]};
+
+      let stable=false;
+      if(state.camera.prevFaceBox){
+        const prev=state.camera.prevFaceBox;
+        const moveX=Math.abs((prev.x+prev.width/2)-(box.x+box.width/2))/w;
+        const moveY=Math.abs((prev.y+prev.height/2)-(box.y+box.height/2))/h;
+        const sizeDiff=Math.abs(prev.height-box.height)/h;
+        stable = moveX<0.035 && moveY<0.04 && sizeDiff<0.035;
+      }
+      state.camera.prevFaceBox = {x:box.x,y:box.y,width:box.width,height:box.height};
+
+      return {level,message,score:Math.min(100,score),rejectCandidates:[...new Set(rejects)],faceBox:box,stable};
     }
     async function assessFrame(){
       if(!state.camera.stream||!state.camera.overlayOpen||state.employeeCaptureBlob||els.cameraVideo.readyState<2) return;
@@ -636,14 +726,50 @@
       const brightness=assessBrightness(ctx,canvas.width,canvas.height);
       let result;
       if(state.camera.detector){
-        try{const faces=await state.camera.detector.detect(canvas); result=withFaceAssessment(faces,canvas.width,canvas.height,brightness);}
-        catch(e){result=fallbackAssessment(brightness);}
-      } else {result=fallbackAssessment(brightness);}
+        try{
+          const faces=await state.camera.detector.detect(canvas);
+          result=withFaceAssessment(faces,canvas.width,canvas.height,brightness);
+        }catch(e){
+          result=fallbackAssessment(brightness);
+        }
+      } else {
+        result=fallbackAssessment(brightness);
+      }
+
+      if(result.level==='ok' && result.stable){
+        state.camera.stableFrames += 1;
+      } else {
+        state.camera.stableFrames = 0;
+        state.camera.autoCaptureFired = false
+      }
+
+      if(result.level!=='ok'){
+        state.camera.autoCaptureFired = false;
+      }
+
+      const readiness = result.level==='ok' ? Math.min(100, 70 + state.camera.stableFrames*10) : result.level==='warn' ? 45 : 20;
       state.camera.lastAssessment=result;
       state.employeeQuality=result;
-      setCaptureMessage(result.level==='ok'?'ok':result.level==='ng'?'ng':'warn',result.message);
+      setReadiness(readiness);
+
+      if(result.level==='ok' && result.stable){
+        if(state.camera.stableFrames===1){
+          setCaptureMessage('ok','そのままで撮影できます。','動かずにそのまま構えてください。');
+        } else if(state.camera.stableFrames===2){
+          setCaptureMessage('ok','そのままで自動撮影します… 2','動かずにそのまま待ってください。');
+        } else if(state.camera.stableFrames===3){
+          setCaptureMessage('ok','そのままで自動撮影します… 1','動かずにそのまま待ってください。');
+        } else if(state.camera.stableFrames>=4 && !state.camera.autoCaptureFired){
+          state.camera.autoCaptureFired = true;
+          await capturePhoto();
+          return;
+        }
+      } else {
+        setCaptureMessage(result.level==='ok'?'ok':result.level==='ng'?'ng':'warn',result.message);
+      }
     }
     function startCameraAssessmentLoop(){if(state.camera.timer) clearInterval(state.camera.timer); state.camera.timer=setInterval(assessFrame,900);}
+    
     async function capturePhoto(){
       if(!state.camera.stream) return;
       const canvas=els.captureCanvas;
@@ -660,11 +786,13 @@
       els.cameraMaskLayer.classList.add('hidden');
       els.overlayRetakeArea.classList.remove('hidden');
       els.overlayCaptureBtn.disabled=true;
+      setReadiness(100);
       setCaptureMessage('ok','撮影できました。内容を確認して進んでください。','問題なければ「この写真で進む」を押してください。');
       state.employeeCaptureBlob=blob;
       state.employeeCaptureUrl=previewUrl;
       state.employeeSourceType='CAMERA';
-      els.selectedPreviewArea.classList.add('hidden');
+      state.selectedPreviewArea.classList.add('hidden');
+      state.camera.autoCaptureFired = true;
     }
     function resetCaptureForRetake(){
       if(state.employeeCaptureUrl?.startsWith('blob:')) URL.revokeObjectURL(state.employeeCaptureUrl);
@@ -672,12 +800,16 @@
       state.employeeCaptureUrl='';
       state.employeeSourceType='';
       state.employeeQuality={score:null,level:'warn',message:'未評価',rejectCandidates:[]};
+      state.camera.stableFrames=0;
+      state.camera.prevFaceBox=null;
+      state.camera.autoCaptureFired=false;
       els.cameraCaptured.classList.add('hidden');
       els.cameraCaptured.src='';
       els.cameraVideo.classList.remove('hidden');
       els.cameraMaskLayer.classList.remove('hidden');
       els.overlayRetakeArea.classList.add('hidden');
       els.overlayCaptureBtn.disabled=!state.camera.stream;
+      setReadiness(0);
       setCaptureMessage('warn','顔と肩が枠に収まるように合わせてください。');
     }
     function useCapturedPhoto(){
@@ -910,7 +1042,14 @@
     els.resubmitFileBtn.addEventListener('click',()=>els.fileInput.click());
     els.fileInput.addEventListener('change',e=>handleSelectedFile(e.target.files?.[0]));
     els.closeCameraOverlay.addEventListener('click',closeCameraOverlay);
-    els.cameraInfoBtn.addEventListener('click',()=>alert('顔は上側の目安、肩は下側の目安に合わせてください。頭頂から肩までが枠に収まると撮りやすいです。'));
+    els.cameraInfoBtn.addEventListener('click',()=>{
+      state.camera.helpOpen = !state.camera.helpOpen;
+      els.cameraHelpPanel.classList.toggle('hidden', !state.camera.helpOpen);
+    });
+    els.cameraHelpClose.addEventListener('click',()=>{
+      state.camera.helpOpen = false;
+      els.cameraHelpPanel.classList.add('hidden');
+    });
     els.overlayFileBtn.addEventListener('click',()=>{closeCameraOverlay();els.fileInput.click();});
     els.overlayCaptureBtn.addEventListener('click',capturePhoto);
     els.overlaySwitchCameraBtn.addEventListener('click',async()=>{
