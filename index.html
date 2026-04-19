@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>顔写真収集アプリ - v22 実ファイル版</title>
+  <title>顔写真収集アプリ - v23 実ファイル版</title>
   <style>
     :root{
       --primary:#002045; --primary2:#123d6b; --bg:#f7fafc; --surface:#fff; --line:#dbe4ee;
@@ -101,10 +101,10 @@
     .empty{padding:18px;border:1px dashed var(--line);border-radius:16px;background:#fbfdff;color:var(--muted);text-align:center}
 
     .camera-overlay{position:fixed;inset:0;z-index:100;background:#081523;color:#fff;display:flex;flex-direction:column}
-    .camera-top{padding:calc(12px + env(safe-area-inset-top)) 16px 12px;display:flex;justify-content:space-between;align-items:center;gap:12px;position:relative;z-index:2}
-    .camera-title{font-size:15px;font-weight:800}
-    .camera-sub{font-size:12px;color:rgba(255,255,255,.78);margin-top:2px}
-    .icon-btn{min-width:42px;min-height:42px;border-radius:14px;background:rgba(255,255,255,.14);color:#fff;font-weight:900;display:grid;place-items:center}
+    .camera-top{padding:calc(6px + env(safe-area-inset-top)) 10px 6px;display:flex;justify-content:space-between;align-items:center;gap:8px;position:relative;z-index:2}
+    .camera-title{font-size:14px;font-weight:800;line-height:1.2}
+    .camera-sub{font-size:11px;color:rgba(255,255,255,.74);margin-top:1px;line-height:1.3}
+    .icon-btn{min-width:36px;min-height:36px;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-weight:900;display:grid;place-items:center;padding:0}
     .camera-stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#081523}
     .camera-video,.camera-captured{width:100%;height:100%;object-fit:cover;display:block;background:#081523}
     .camera-overlay-mask{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.26),rgba(0,0,0,.06) 18%,rgba(0,0,0,.06) 82%,rgba(0,0,0,.28))}
@@ -156,19 +156,19 @@
       transform:translateX(-50%);
     }
     .guide-label{
-      position:absolute; left:50%; top:calc(50% - min(40vh,320px) - 42px); transform:translateX(-50%);
-      padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-size:12px; font-weight:800;
-      border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(8px);
+      position:absolute; left:50%; top:calc(50% - min(34vh,240px) - 24px); transform:translateX(-50%);
+      padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.12); color:#fff; font-size:11px; font-weight:800;
+      border:1px solid rgba(255,255,255,.16); backdrop-filter:blur(8px);
       white-space:nowrap;
     }
     .guide-hint-badges{
-      position:absolute; left:50%; bottom:calc(50% - min(40vh,320px) - 56px); transform:translateX(-50%);
-      display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
-      width:min(92vw,560px);
+      position:absolute; left:50%; bottom:calc(50% - min(34vh,240px) - 34px); transform:translateX(-50%);
+      display:flex; gap:6px; flex-wrap:wrap; justify-content:center;
+      width:min(92vw,520px);
     }
     .guide-hint-badge{
-      padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.12);
-      border:1px solid rgba(255,255,255,.16); font-size:11px; font-weight:800; color:#fff;
+      padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14); font-size:10px; font-weight:800; color:#fff;
       backdrop-filter:blur(8px);
     }
     .guide-panel{
@@ -181,27 +181,27 @@
     .guide-panel p{margin:0; font-size:13px; line-height:1.7; color:rgba(255,255,255,.88)}
     .guide-panel .btn-row{margin-top:12px; justify-content:flex-end}
 
-.camera-bottom{padding:12px 16px calc(18px + env(safe-area-inset-bottom));position:relative;z-index:2;display:grid;gap:12px;background:linear-gradient(180deg,rgba(8,21,35,0),rgba(8,21,35,.55) 20%,rgba(8,21,35,.82) 48%,rgba(8,21,35,.9))}
-    .capture-message{margin:0 auto;max-width:680px;width:100%;padding:12px 14px;border-radius:16px;font-size:15px;font-weight:800;text-align:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px)}
+.camera-bottom{padding:8px 12px calc(10px + env(safe-area-inset-bottom));position:relative;z-index:2;display:grid;gap:8px;background:linear-gradient(180deg,rgba(8,21,35,0),rgba(8,21,35,.46) 16%,rgba(8,21,35,.76) 42%,rgba(8,21,35,.86))}
+    .capture-message{margin:0 auto;max-width:680px;width:100%;padding:9px 12px;border-radius:14px;font-size:13px;font-weight:800;text-align:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px)}
     .capture-message.ok{background:rgba(17,122,73,.18);border-color:rgba(147,233,182,.24)}
     .capture-message.warn{background:rgba(183,121,31,.2);border-color:rgba(255,214,143,.24)}
     .capture-message.ng{background:rgba(197,48,48,.18);border-color:rgba(255,191,191,.24)}
-    .camera-actions{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;max-width:680px;width:100%;margin:0 auto}
-    .side-link{justify-self:start;background:none;color:#fff;opacity:.9;padding:8px 0;font-weight:800}
+    .camera-actions{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;max-width:680px;width:100%;margin:0 auto}
+    .side-link{justify-self:start;background:none;color:#fff;opacity:.88;padding:4px 0;font-weight:800;font-size:12px}
     .side-link.right{justify-self:end}
-    .shutter{width:86px;height:86px;border-radius:50%;background:#fff;position:relative;border:none;cursor:pointer;box-shadow:0 14px 36px rgba(0,0,0,.24)}
-    .shutter:after{content:"";position:absolute;inset:9px;border-radius:50%;background:linear-gradient(180deg,var(--primary2),var(--primary))}
+    .shutter{width:74px;height:74px;border-radius:50%;background:#fff;position:relative;border:none;cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.24)}
+    .shutter:after{content:"";position:absolute;inset:8px;border-radius:50%;background:linear-gradient(180deg,var(--primary2),var(--primary))}
     .shutter:disabled{opacity:.45;cursor:not-allowed}
-    .camera-mini-note{text-align:center;color:rgba(255,255,255,.72);font-size:12px;line-height:1.6}
-    .stability-box{max-width:680px;width:100%;margin:0 auto;display:grid;gap:8px}
-    .stability-row{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#fff;font-size:12px}
+    .camera-mini-note{text-align:center;color:rgba(255,255,255,.70);font-size:11px;line-height:1.4}
+    .stability-box{max-width:680px;width:100%;margin:0 auto;display:grid;gap:6px}
+    .stability-row{display:flex;justify-content:space-between;gap:10px;align-items:center;color:#fff;font-size:11px}
     .stability-label{opacity:.78}
     .stability-value{font-weight:800}
-    .stability-track{height:8px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
+    .stability-track{height:6px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
     .stability-fill{height:100%;width:0;background:linear-gradient(90deg,#7aa6d8,#ffffff);transition:width .18s ease}
 
-    .readiness-chips{max-width:680px;width:100%;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-    .readiness-chip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);font-size:11px;font-weight:800;color:#fff;opacity:.9}
+    .readiness-chips{max-width:680px;width:100%;margin:0 auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+    .readiness-chip{padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);font-size:10px;font-weight:800;color:#fff;opacity:.9}
     .readiness-chip.ok{background:rgba(17,122,73,.18);border-color:rgba(147,233,182,.24)}
     .readiness-chip.warn{background:rgba(183,121,31,.22);border-color:rgba(255,214,143,.24)}
     .readiness-chip.neutral{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.14)}
@@ -216,8 +216,8 @@
       .topbar-inner{padding:14px}
       .grid2,.grid3,.split,.toolbar,.metric-grid{grid-template-columns:1fr}
       .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .guide-frame{width:min(78vw,360px);height:min(72vh,560px)}
-      .guide-label{top:calc(50% - min(36vh,260px) - 36px)}
+      .guide-frame{width:min(78vw,360px);height:min(74vh,580px)}
+      .guide-label{top:calc(50% - min(34vh,240px) - 24px)}
     }
   </style>
 </head>
@@ -226,7 +226,7 @@
     <div class="topbar-inner">
       <div class="brand">
         <h1>顔写真収集アプリ</h1>
-        <p><a href="#" id="versionInfoLink">v22 実ファイル書き出し版（ガイド枠調整 + 受け身の撮影ガイド追加）</a></p>
+        <p><a href="#" id="versionInfoLink">v23 実ファイル書き出し版（撮影画面の圧縮調整 + ガイド機能提案）</a></p>
       </div>
       <div class="nav-switch">
         <button class="switch-btn active" id="switchEmployee">従業員モード</button>
@@ -236,7 +236,7 @@
   </header>
 
   <main class="shell">
-    <div class="notice">今回は <strong>開始ステップの簡易トークン導線</strong> を修正しています。有効トークン入力時に、氏名・従業員コード・所属・提出予定ファイル名を即時表示し、「次へ」が有効になるようにしています。</div>
+    <div class="notice">今回は <strong>撮影画面の密度調整</strong> を行っています。上部ヘッダーと下部操作帯を圧縮し、カメラ映像をより大きく見せるようにしています。</div>
 
     <section id="employeeApp">
       <div class="hero">
@@ -524,7 +524,7 @@
         <div class="guide-hint-badges">
           <div class="guide-hint-badge">頭頂は上の点</div>
           <div class="guide-hint-badge">あごは下の点</div>
-          <div class="guide-hint-badge">胸上まで枠に収める</div>
+          <div class="guide-hint-badge">胸上まで外枠に収める</div>
         </div>
       </div>
     </div>
@@ -564,7 +564,7 @@
 
   <section id="releasePanel" class="guide-panel hidden" aria-live="polite">
     <h4>この版の変更点</h4>
-    <p>v22 では、証明写真のバストアップ画角に合わせてガイド枠を微調整し、顎位置の目安を修正しています。加えて、撮影者のUXを妨げにくい受け身の撮影ガイドとして、画角・明るさ・安定の小さな状態チップを追加しています。</p>
+    <p>v23 では、撮影画面の上部ヘッダーと下部操作帯を圧縮し、カメラ映像をより大きく見せるようにしています。加えて、撮影者のUXを妨げにくい受け身の撮影ガイドとして、画角・明るさ・安定の小さな状態チップを維持しています。</p>
     <div class="btn-row">
       <button class="btn secondary" id="closeReleasePanelBtn">閉じる</button>
     </div>
@@ -574,7 +574,7 @@
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
-    const APP={storageKey:'badge_photo_app_demo_v22'};
+    const APP={storageKey:'badge_photo_app_demo_v23'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
     const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中',prevMotionSignature:null,motionEma:0}};
     const $=id=>document.getElementById(id);
