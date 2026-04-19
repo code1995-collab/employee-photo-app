@@ -198,8 +198,8 @@
       .topbar-inner{padding:14px}
       .grid2,.grid3,.split,.toolbar,.metric-grid{grid-template-columns:1fr}
       .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .guide-frame{width:min(76vw,340px);height:min(68vh,500px)}
-      .guide-label{top:calc(47% - min(35vh,250px) - 38px)}
+      .guide-frame{width:min(72vw,340px);height:min(66vh,480px)}
+      .guide-label{top:calc(46% - min(33vh,230px) - 36px)}
     }
   </style>
 </head>
@@ -530,7 +530,7 @@
   
   <section id="guidePanel" class="guide-panel hidden" aria-live="polite">
     <h4>撮影ガイド</h4>
-    <p>頭頂は上帯、あごは中央帯、肩は下帯に入るように合わせてください。枠の中央線に鼻筋が近いと合わせやすいです。</p>
+    <p>頭頂は上の点、あごは中央の点、肩は下の線に合わせてください。枠の中央線に鼻筋が近いと合わせやすいです。</p>
     <div class="btn-row">
       <button class="btn secondary" id="closeGuidePanelBtn">閉じる</button>
     </div>
@@ -628,7 +628,7 @@ function closeGuidePanel(){
     function setCaptureMessage(level,text,note=''){
       els.captureMessage.className=`capture-message ${level}`;
       els.captureMessage.textContent=text;
-      els.cameraMiniNote.textContent=note||(level==='ok'?'写りがよければ、そのまま撮影してください。':'頭頂から肩までが枠に収まるように合わせてください。');
+      els.cameraMiniNote.textContent=note||(level==='ok'?'写りがよければ、そのまま撮影してください。':'頭頂は上の点、あごは中央の点、肩は下の線に合わせてください。');
     }
     function resetStability(){
       state.camera.history=[];
@@ -686,7 +686,7 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
     const y=0.299*r+0.587*g+0.114*b;
     const cb=128 - 0.168736*r - 0.331264*g + 0.5*b;
     const cr=128 + 0.5*r - 0.418688*g - 0.081312*b;
-    const rgbSkin = r>95 && g>40 && b>20 && (max-min)>15 && Math.Math.abs(r-g)>15 && r>g && r>b;
+    const rgbSkin = r>95 && g>40 && b>20 && (max-min)>15 && Math.abs(r-g)>15 && r>g && r>b;
     const ycbcrSkin = cr>133 && cr<180 && cb>85 && cb<140;
     if(rgbSkin || ycbcrSkin) skin++;
     if(lastY!==null) contrast += Math.abs(y-lastY);
@@ -695,7 +695,7 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
   }
   const skinRatio=samples?skin/samples:0;
   const avgContrast=samples?contrast/samples:0;
-  const likely = brightness.tone!=='ng' && skinRatio>=0.075 && avgContrast>=4.5;
+  const likely = brightness.tone!=='ng' && skinRatio>=0.055 && avgContrast>=3.2;
   return { likely, skinRatio, avgContrast };
 }
 function computeMotionOnlyStability(ctx,w,h){
@@ -703,21 +703,21 @@ function computeMotionOnlyStability(ctx,w,h){
   if(!state.camera.prevMotionSignature){
     state.camera.prevMotionSignature=sig;
     state.camera.motionEma=0;
-    updateStabilityUI(20,'判定中');
-    return {ok:false,score:20,text:'判定中',motion:0};
+    updateStabilityUI(30,'調整中');
+    return {ok:false,score:30,text:'調整中',motion:0};
   }
   let diff=0;
   for(let i=0;i<sig.length;i++) diff += Math.abs(sig[i]-state.camera.prevMotionSignature[i]);
   diff /= sig.length;
   state.camera.prevMotionSignature=sig;
-  state.camera.motionEma = state.camera.motionEma*0.95 + diff*0.05;
+  state.camera.motionEma = state.camera.motionEma*0.88 + diff*0.12;
   const motion = state.camera.motionEma;
-  let score = 100 - Math.min(45, motion*1.1);
+  let score = 100 - Math.min(38, motion*0.9);
   score = Math.max(20, Math.min(100, Math.round(score)));
   let text='安定';
   let ok=true;
-  if(motion>42){ text='動きあり'; ok=false; }
-  else if(motion>28){ text='やや不安定'; ok=false; }
+  if(motion>46){ text='動きあり'; ok=false; }
+  else if(motion>30){ text='やや不安定'; ok=false; }
   updateStabilityUI(score,text);
   return {ok,score,text,motion};
 }
@@ -778,7 +778,7 @@ async function openCameraOverlay(deviceId=''){
   if(els.cameraActions) els.cameraActions.classList.remove('hidden');
   els.overlayRetakeArea.classList.add('hidden');
   els.overlayCaptureBtn.disabled=true;
-  setCaptureMessage('warn','カメラを起動して、頭頂・あご・肩を帯に合わせてください。');
+  setCaptureMessage('warn','カメラを起動して、頭頂・あご・肩を目安に合わせてください。');
   if(!navigator.mediaDevices?.getUserMedia){alert('この端末・ブラウザではカメラに対応していません。保存済み写真を選択してください。');closeCameraOverlay();return;}
   try{
     stopCamera();
@@ -839,69 +839,75 @@ async function openCameraOverlay(deviceId=''){
     }
 async function assessFrame(){
   if(!state.camera.stream||!state.camera.overlayOpen||state.employeeCaptureBlob) return;
-  if((els.cameraVideo.videoWidth||0) < 60 || (els.cameraVideo.videoHeight||0) < 60){
-    setCaptureMessage('warn','映像を準備しています。少しお待ちください。','映像が出たら頭頂・あご・肩を帯に合わせてください。');
-    return;
-  }
+  try{
+    if((els.cameraVideo.videoWidth||0) < 60 || (els.cameraVideo.videoHeight||0) < 60){
+      setCaptureMessage('warn','映像を準備しています。少しお待ちください。','映像が出たら頭頂・あご・肩を目安に合わせてください。');
+      return;
+    }
 
-  const canvas=els.analysisCanvas;
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});
-  const vw=els.cameraVideo.videoWidth||720, vh=els.cameraVideo.videoHeight||960;
-  canvas.width=360; canvas.height=Math.round((vh/vw)*360);
-  ctx.drawImage(els.cameraVideo,0,0,canvas.width,canvas.height);
+    const canvas=els.analysisCanvas;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    const vw=els.cameraVideo.videoWidth||720, vh=els.cameraVideo.videoHeight||960;
+    canvas.width=360; canvas.height=Math.round((vh/vw)*360);
+    ctx.drawImage(els.cameraVideo,0,0,canvas.width,canvas.height);
 
-  const brightness=assessBrightness(ctx,canvas.width,canvas.height);
-  const presence=estimateFaceLikePresence(ctx,canvas.width,canvas.height,brightness);
-  let result;
-  let stability;
-  let hasFace=false;
-  let faceLikely=presence.likely;
+    const brightness=assessBrightness(ctx,canvas.width,canvas.height);
+    const presence=estimateFaceLikePresence(ctx,canvas.width,canvas.height,brightness);
+    let result;
+    let stability;
+    let hasFace=false;
+    let faceLikely=presence.likely;
 
-  if(state.camera.detector){
-    try{
-      const faces=await state.camera.detector.detect(canvas);
-      result=withFaceAssessment(faces,canvas.width,canvas.height,brightness);
+    if(state.camera.detector){
+      try{
+        const faces=await state.camera.detector.detect(canvas);
+        result=withFaceAssessment(faces,canvas.width,canvas.height,brightness);
 
-      if(faces && faces.length===1){
-        hasFace=true;
-        faceLikely=true;
-        const box=faces[0].boundingBox;
-        stability=computeStability({
-          cx:(box.x+box.width/2)/canvas.width,
-          cy:(box.y+box.height/2)/canvas.height,
-          size:box.height/canvas.height,
-          brightness:(brightness.score||0)
-        });
-        result.stability=stability;
-      } else {
+        if(faces && faces.length===1){
+          hasFace=true;
+          faceLikely=true;
+          const box=faces[0].boundingBox;
+          stability=computeStability({
+            cx:(box.x+box.width/2)/canvas.width,
+            cy:(box.y+box.height/2)/canvas.height,
+            size:box.height/canvas.height,
+            brightness:(brightness.score||0)
+          });
+          result.stability=stability;
+        } else {
+          stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
+          result.stability={...stability, ok:false, text:'顔を合わせてください'};
+          updateStabilityUI(Math.max(20, Math.round(stability.score*0.55)), '顔を合わせてください');
+          result.stability.score = Math.max(20, Math.round(stability.score*0.55));
+        }
+      }catch(e){
+        result=fallbackAssessment(brightness);
         stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
-        result.stability={...stability, ok:false, text:'顔を合わせてください'};
-        updateStabilityUI(Math.max(20, Math.round(stability.score*0.55)), '顔を合わせてください');
-        result.stability.score = Math.max(20, Math.round(stability.score*0.55));
+        result.stability=stability;
       }
-    }catch(e){
+    } else {
       result=fallbackAssessment(brightness);
       stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
       result.stability=stability;
     }
-  } else {
-    result=fallbackAssessment(brightness);
-    stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
-    result.stability=stability;
-  }
 
-  if((hasFace || faceLikely) && result.level==='ok' && result.stability?.ok){
-    setCaptureMessage('ok','顔は合っています。撮影してください。','端末を止めたままシャッターを押してください。');
-  } else if((hasFace || faceLikely) && result.level==='ok' && result.stability && !result.stability.ok){
-    setCaptureMessage('warn','顔は合っています。端末を動かさないでください。','細かい揺れが収まると安定判定になります。');
-  } else if(!hasFace && !faceLikely){
-    setCaptureMessage('warn','顔をガイド枠に合わせてください。','頭頂は上帯、あごは中央帯、肩は下帯に入るように合わせてください。');
-  } else {
-    setCaptureMessage(result.level==='ng'?'ng':'warn',result.message);
-  }
+    if((hasFace || faceLikely) && (result.level==='ok' || result.level==='warn') && result.stability?.ok){
+      setCaptureMessage('ok','顔は合っています。撮影してください。','端末を止めたままシャッターを押してください。');
+    } else if((hasFace || faceLikely) && (result.level==='ok' || result.level==='warn') && result.stability && !result.stability.ok){
+      setCaptureMessage('warn','顔は合っています。端末を動かさないでください。','細かい揺れが収まると安定判定になります。');
+    } else if(!hasFace && !faceLikely){
+      setCaptureMessage('warn','顔をガイド枠に合わせてください。','頭頂は上の点、あごは中央の点、肩は下の線に合わせてください。');
+    } else {
+      setCaptureMessage(result.level==='ng'?'ng':'warn',result.message);
+    }
 
-  state.camera.lastAssessment=result;
-  state.employeeQuality=result;
+    state.camera.lastAssessment=result;
+    state.employeeQuality=result;
+  }catch(err){
+    console.error(err);
+    updateStabilityUI(20,'調整中');
+    setCaptureMessage('warn','頭頂・あご・肩を目安に合わせてください。','判定を再試行しています。');
+  }
 }
 function startCameraAssessmentLoop(){
   if(state.camera.timer) clearInterval(state.camera.timer);
@@ -941,7 +947,7 @@ function resetCaptureForRetake(){
   els.overlayRetakeArea.classList.add('hidden');
   els.overlayCaptureBtn.disabled=!state.camera.stream;
   resetStability();
-  setCaptureMessage('warn','頭頂・あご・肩を帯に合わせてください。');
+  setCaptureMessage('warn','頭頂・あご・肩を目安に合わせてください。');
   assessFrame().catch(console.error);
 }
 function useCapturedPhoto(){
