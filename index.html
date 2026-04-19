@@ -3,30 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>顔写真収集アプリ - v4 撮影UX改善版</title>
+  <title>顔写真収集アプリ - v6 実ファイル版</title>
   <style>
     :root{
       --primary:#002045; --primary2:#123d6b; --bg:#f7fafc; --surface:#fff; --line:#dbe4ee;
       --text:#0f1f33; --muted:#5c6b7f; --ok:#117a49; --warn:#b7791f; --danger:#c53030;
       --shadow:0 16px 40px rgba(0,32,69,.08);
     }
-    *{box-sizing:border-box} html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic","Meiryo",sans-serif}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic","Meiryo",sans-serif}
     button,input,select,textarea{font:inherit}
     .hidden{display:none!important}
     .topbar{position:sticky;top:0;z-index:30;background:rgba(247,250,252,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
     .topbar-inner{max-width:1180px;margin:0 auto;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px}
-    .brand h1{margin:0;font-size:22px;color:var(--primary)} .brand p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+    .brand h1{margin:0;font-size:22px;color:var(--primary)}
+    .brand p{margin:4px 0 0;font-size:13px;color:var(--muted)}
     .nav-switch{display:flex;gap:10px;flex-wrap:wrap}
-    .switch-btn,.subnav-btn,.btn{border:none;cursor:pointer}
+    .switch-btn,.subnav-btn,.btn,.text-link,.icon-btn{border:none;cursor:pointer}
     .switch-btn{padding:10px 16px;border-radius:999px;background:#eaf1f8;color:var(--primary);font-weight:800}
     .switch-btn.active{background:linear-gradient(180deg,var(--primary2),var(--primary));color:#fff}
     .shell{max-width:1180px;margin:0 auto;padding:16px}
     .notice{margin:12px 0 16px;padding:14px 16px;border-radius:16px;border:1px solid #d7e3ef;background:#fbfdff;color:var(--muted);font-size:13px;line-height:1.7}
     .hero{background:linear-gradient(180deg,#07294f,#002045);color:#fff;padding:22px;border-radius:24px;box-shadow:0 18px 48px rgba(0,32,69,.18);margin-bottom:16px}
-    .hero h2{margin:0;font-size:26px} .hero p{margin:10px 0 0;line-height:1.7;color:rgba(255,255,255,.88)}
+    .hero h2{margin:0;font-size:26px}
+    .hero p{margin:10px 0 0;line-height:1.7;color:rgba(255,255,255,.88)}
     .card{background:var(--surface);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
     .card-head{padding:18px 20px;border-bottom:1px solid #e7eef6}
-    .card-head h3{margin:0;color:var(--primary)} .card-head p{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.7}
+    .card-head h3{margin:0;color:var(--primary)}
     .card-body{padding:20px;display:grid;gap:16px}
     .progress{height:8px;border-radius:999px;background:#e6edf6;overflow:hidden}
     .progress-fill{height:100%;width:25%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:width .25s ease}
@@ -46,29 +49,17 @@
     .guide-item{padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:#fff}
     .guide-item strong{display:block;margin-bottom:6px}
     .guide-item p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
-    .camera-wrap{display:grid;gap:12px}
-    .capture-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
-    .capture-head h4{margin:0;font-size:20px;color:var(--primary)}
-    .capture-head p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.7}
-    .camera-stage{position:relative;border-radius:26px;overflow:hidden;background:#081523;border:1px solid #17314e}
-    video,.preview{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#081523}
-    .overlay{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.22),rgba(0,0,0,.04) 22%,rgba(0,0,0,.04) 78%,rgba(0,0,0,.22))}
-    .mask{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:min(62%,340px);height:min(74%,450px);border:4px solid rgba(255,255,255,.94);border-radius:50% / 44%;box-shadow:0 0 0 200vmax rgba(7,14,24,.35)}
-    .capture-hint{padding:10px 14px;border-radius:16px;background:#fff;border:1px solid var(--line);font-size:14px;font-weight:800;color:var(--primary);text-align:center}
-    .capture-hint.ok{background:#eef9f2;color:var(--ok);border-color:#caead6}
-    .capture-hint.warn{background:#fff8eb;color:var(--warn);border-color:#f3dfb1}
-    .capture-hint.ng{background:#fff0f0;color:var(--danger);border-color:#f0c3c3}
-    .shutter-zone{display:grid;justify-items:center;gap:10px}
-    .shutter{width:82px;height:82px;border-radius:50%;background:linear-gradient(180deg,var(--primary2),var(--primary));color:#fff;box-shadow:0 16px 30px rgba(0,32,69,.22);display:grid;place-items:center;font-size:14px;font-weight:900}
-    .shutter.secondary{width:auto;height:auto;padding:12px 16px;border-radius:16px;background:#eaf1f8;color:var(--primary);box-shadow:none}
-    .inline-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
-    .text-link{background:none;border:none;color:var(--primary);font-weight:800;padding:0}
+    .method-grid{display:grid;gap:12px}
+    .method-card{padding:18px;border-radius:18px;border:1px solid var(--line);background:#fff;display:grid;grid-template-columns:48px 1fr auto;gap:14px;align-items:center}
+    .method-icon{width:48px;height:48px;border-radius:16px;background:#edf3f9;color:var(--primary);display:grid;place-items:center;font-size:22px;font-weight:900}
     .summary{display:grid;gap:10px}
     .summary-row{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid #e7eef6}
     .summary-key{font-size:13px;color:var(--muted)}
     .summary-val{font-size:14px;font-weight:800;text-align:right;word-break:break-word}
     .quality-chip{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900}
-    .quality-chip.ok{background:#e9f7ef;color:var(--ok)} .quality-chip.warn{background:#fff6e8;color:var(--warn)} .quality-chip.ng{background:#feecec;color:var(--danger)}
+    .quality-chip.ok{background:#e9f7ef;color:var(--ok)}
+    .quality-chip.warn{background:#fff6e8;color:var(--warn)}
+    .quality-chip.ng{background:#feecec;color:var(--danger)}
     .btn-row{display:flex;gap:10px;flex-wrap:wrap}
     .btn{min-height:50px;padding:13px 16px;border-radius:16px;font-weight:900}
     .btn.primary{background:linear-gradient(180deg,var(--primary2),var(--primary));color:#fff}
@@ -77,6 +68,10 @@
     .btn:disabled{opacity:.5;cursor:not-allowed}
     .complete{text-align:center;padding:26px;display:grid;gap:14px}
     .complete-icon{width:76px;height:76px;margin:0 auto;border-radius:24px;background:#ecf7f0;color:var(--ok);display:grid;place-items:center;font-size:36px;font-weight:900}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .preview-card{position:relative;border-radius:24px;overflow:hidden;background:#081523;border:1px solid #17314e}
+    .preview{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#081523}
+    .nav-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .layout-admin{display:grid;grid-template-columns:280px minmax(0,1fr);gap:18px}
     .sidebar{display:grid;gap:14px}
     .admin-subnav{display:flex;gap:8px;flex-wrap:wrap}
@@ -93,15 +88,78 @@
     th{background:#f9fbff;color:#41506b;white-space:nowrap}
     .thumb{width:72px;height:96px;border-radius:12px;object-fit:cover;background:#edf3f8;border:1px solid var(--line)}
     .pill{display:inline-flex;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:900}
-    .pill.not_started{background:#edf3f8;color:#545f72}.pill.submitted{background:#fff6e8;color:var(--warn)}.pill.approved{background:#e9f7ef;color:var(--ok)}.pill.rejected{background:#feecec;color:var(--danger)}.pill.expired{background:#f2e8ff;color:#6b46c1}
-    .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .pill.not_started{background:#edf3f8;color:#545f72}
+    .pill.submitted{background:#fff6e8;color:var(--warn)}
+    .pill.approved{background:#e9f7ef;color:var(--ok)}
+    .pill.rejected{background:#feecec;color:var(--danger)}
+    .pill.expired{background:#f2e8ff;color:#6b46c1}
     .log-box{max-height:280px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fbfdff;padding:12px}
     .log-item{padding:10px 0;border-bottom:1px solid #e7eef6;font-size:13px;line-height:1.6}
     .log-item:last-child{border-bottom:none}
     .empty{padding:18px;border:1px dashed var(--line);border-radius:16px;background:#fbfdff;color:var(--muted);text-align:center}
-    .nav-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    @media (max-width:1024px){.layout-admin{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr 1fr}.grid3,.metric-grid{grid-template-columns:1fr}}
-    @media (max-width:768px){.shell{padding:14px}.topbar-inner{padding:14px}.grid2,.grid3,.split,.toolbar,.metric-grid{grid-template-columns:1fr}.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+    .camera-overlay{position:fixed;inset:0;z-index:100;background:#081523;color:#fff;display:flex;flex-direction:column}
+    .camera-top{padding:calc(12px + env(safe-area-inset-top)) 16px 12px;display:flex;justify-content:space-between;align-items:center;gap:12px;position:relative;z-index:2}
+    .camera-title{font-size:15px;font-weight:800}
+    .camera-sub{font-size:12px;color:rgba(255,255,255,.78);margin-top:2px}
+    .icon-btn{min-width:42px;min-height:42px;border-radius:14px;background:rgba(255,255,255,.14);color:#fff;font-weight:900;display:grid;place-items:center}
+    .camera-stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#081523}
+    .camera-video,.camera-captured{width:100%;height:100%;object-fit:cover;display:block;background:#081523}
+    .camera-overlay-mask{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.26),rgba(0,0,0,.06) 18%,rgba(0,0,0,.06) 82%,rgba(0,0,0,.28))}
+    .guide-frame{
+      position:absolute; left:50%; top:47%; transform:translate(-50%,-50%);
+      width:min(64vw,360px); height:min(74vh,540px);
+      border:4px solid rgba(255,255,255,.96); border-radius:30px;
+      box-shadow:0 0 0 200vmax rgba(7,14,24,.35);
+    }
+    .guide-frame::before,.guide-frame::after{
+      content:""; position:absolute; left:14%; right:14%;
+      border-top:2px dashed rgba(255,255,255,.82);
+    }
+    .guide-frame::before{top:24%}
+    .guide-frame::after{top:56%}
+    .guide-head{
+      position:absolute; left:50%; top:15%; transform:translateX(-50%);
+      width:36%; height:20%;
+      border:2px solid rgba(255,255,255,.72); border-radius:50%;
+    }
+    .guide-shoulder{
+      position:absolute; left:50%; bottom:10%; transform:translateX(-50%);
+      width:68%; height:20%;
+      border:2px solid rgba(255,255,255,.6); border-bottom:none;
+      border-radius:50% 50% 0 0;
+    }
+    .guide-label{
+      position:absolute; left:50%; top:calc(47% - min(37vh,270px) - 42px); transform:translateX(-50%);
+      padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-size:12px; font-weight:800;
+      border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(8px);
+    }
+    .camera-bottom{padding:12px 16px calc(18px + env(safe-area-inset-bottom));position:relative;z-index:2;display:grid;gap:12px;background:linear-gradient(180deg,rgba(8,21,35,0),rgba(8,21,35,.55) 20%,rgba(8,21,35,.82) 48%,rgba(8,21,35,.9))}
+    .capture-message{margin:0 auto;max-width:680px;width:100%;padding:12px 14px;border-radius:16px;font-size:15px;font-weight:800;text-align:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px)}
+    .capture-message.ok{background:rgba(17,122,73,.18);border-color:rgba(147,233,182,.24)}
+    .capture-message.warn{background:rgba(183,121,31,.2);border-color:rgba(255,214,143,.24)}
+    .capture-message.ng{background:rgba(197,48,48,.18);border-color:rgba(255,191,191,.24)}
+    .camera-actions{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;max-width:680px;width:100%;margin:0 auto}
+    .side-link{justify-self:start;background:none;color:#fff;opacity:.9;padding:8px 0;font-weight:800}
+    .side-link.right{justify-self:end}
+    .shutter{width:86px;height:86px;border-radius:50%;background:#fff;position:relative;border:none;cursor:pointer;box-shadow:0 14px 36px rgba(0,0,0,.24)}
+    .shutter:after{content:"";position:absolute;inset:9px;border-radius:50%;background:linear-gradient(180deg,var(--primary2),var(--primary))}
+    .shutter:disabled{opacity:.45;cursor:not-allowed}
+    .camera-mini-note{text-align:center;color:rgba(255,255,255,.72);font-size:12px;line-height:1.6}
+
+    @media (max-width:1024px){
+      .layout-admin{grid-template-columns:1fr}
+      .toolbar{grid-template-columns:1fr 1fr}
+      .grid3,.metric-grid{grid-template-columns:1fr}
+    }
+    @media (max-width:768px){
+      .shell{padding:14px}
+      .topbar-inner{padding:14px}
+      .grid2,.grid3,.split,.toolbar,.metric-grid{grid-template-columns:1fr}
+      .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .guide-frame{width:min(76vw,340px);height:min(68vh,500px)}
+      .guide-label{top:calc(47% - min(34vh,240px) - 38px)}
+    }
   </style>
 </head>
 <body>
@@ -109,7 +167,7 @@
     <div class="topbar-inner">
       <div class="brand">
         <h1>顔写真収集アプリ</h1>
-        <p>v4 撮影UX改善版（ローカル保存デモ）</p>
+        <p>v6 実ファイル書き出し版（全画面カメラ + 明確なガイド枠）</p>
       </div>
       <div class="nav-switch">
         <button class="switch-btn active" id="switchEmployee">従業員モード</button>
@@ -119,12 +177,12 @@
   </header>
 
   <main class="shell">
-    <div class="notice">今回は撮影ステップのUXを見直し、撮影中は <strong>顔の楕円ガイド・短い1行メッセージ・大きな撮影ボタン</strong> だけを主役にしています。細かい評価は確認画面に寄せています。</div>
+    <div class="notice">今回は <strong>実ファイルでのみ出力</strong> しています。全画面カメラは維持しつつ、楕円ガイドをやめて、<strong>顔の位置・大きさ・肩幅の目安が分かる縦長フレーム</strong> に変更しています。</div>
 
     <section id="employeeApp">
       <div class="hero">
         <h2>従業員向け提出フロー</h2>
-        <p>開始 → 撮影 → 確認 → 完了の4段階を基本に構成しています。差し戻しがある場合のみ、再提出導線が追加されます。</p>
+        <p>開始 → 撮影方法選択 → 全画面カメラ撮影 / 写真選択 → 確認 → 完了の流れです。差し戻し時のみ再提出画面が追加されます。</p>
       </div>
 
       <div class="card">
@@ -156,48 +214,33 @@
               </div>
             </div>
             <div class="guide-list">
-              <div class="guide-item"><strong>撮影時のポイント</strong><p>帽子・マスクなし、明るい場所、無地背景を推奨します。顔全体が枠の中に収まるようにしてください。</p></div>
+              <div class="guide-item"><strong>撮影時のポイント</strong><p>帽子・マスクなし、明るい場所、無地背景を推奨します。顔と肩が枠の目安に入るようにしてください。</p></div>
             </div>
           </section>
 
           <section class="screen hidden" data-screen="2">
-            <div class="camera-wrap">
-              <div class="capture-head">
-                <div>
-                  <h4>顔写真を撮影してください</h4>
-                  <p>顔を枠の中央に合わせてください。迷ったら、そのまま正面を向いて撮影してください。</p>
-                </div>
-                <div class="helper" id="captureContextText">保存済みの写真を使うこともできます。</div>
-              </div>
-
-              <div class="camera-stage">
-                <video id="video" autoplay muted playsinline></video>
-                <img id="previewImage" class="preview hidden" alt="preview">
-                <div class="overlay" id="videoOverlay">
-                  <div class="mask"></div>
-                </div>
-              </div>
-
-              <div id="captureHint" class="capture-hint">カメラを起動して、顔を枠の中央に合わせてください。</div>
-
-              <div class="shutter-zone">
-                <button class="btn ghost" id="startCameraBtn">カメラ起動</button>
-                <button class="shutter" id="captureBtn" disabled>撮影</button>
-                <button class="btn secondary hidden" id="retakeBtn">撮り直す</button>
-                <div class="inline-links">
-                  <button class="text-link" id="fileModeBtn">保存済みの写真を使う</button>
-                  <button class="text-link" id="switchCameraBtn" disabled>カメラ切替</button>
-                </div>
-              </div>
-
-              <input type="file" accept="image/jpeg,image/png" id="fileInput" class="hidden" />
-              <select class="select hidden" id="cameraSelect"></select>
+            <div class="grid2">
+              <button class="method-card" id="openCameraBtn">
+                <div class="method-icon">📷</div>
+                <div><strong>カメラで撮影する</strong><div class="helper">全画面の撮影画面で顔を合わせて撮影します。</div></div>
+                <div>›</div>
+              </button>
+              <button class="method-card" id="openFileBtn">
+                <div class="method-icon">🖼️</div>
+                <div><strong>保存済み写真を使う</strong><div class="helper">スマホやPCに保存済みの写真を提出します。</div></div>
+                <div>›</div>
+              </button>
+            </div>
+            <input type="file" accept="image/jpeg,image/png" id="fileInput" class="hidden" />
+            <div id="selectedPreviewArea" class="hidden">
+              <div class="preview-card"><img id="selectedPreviewImage" class="preview" alt="selected"></div>
+              <div class="info">写真を選択しました。「確認へ進む」を押してください。</div>
             </div>
           </section>
 
           <section class="screen hidden" data-screen="3">
             <div class="split">
-              <div class="camera-stage"><img id="reviewImage" class="preview" alt="review"></div>
+              <div class="preview-card"><img id="reviewImage" class="preview" alt="review"></div>
               <div class="summary">
                 <div class="summary-row"><div class="summary-key">従業員コード</div><div class="summary-val" id="reviewCode">-</div></div>
                 <div class="summary-row"><div class="summary-key">氏名</div><div class="summary-val" id="reviewName">-</div></div>
@@ -226,7 +269,7 @@
               <div style="margin-top:10px"><strong>補足コメント</strong>: <span id="rejectCommentText">-</span></div>
             </div>
             <div class="btn-row">
-              <button class="btn primary" id="resubmitBtn">再撮影する</button>
+              <button class="btn primary" id="resubmitCameraBtn">再撮影する</button>
               <button class="btn ghost" id="resubmitFileBtn">別の写真を選ぶ</button>
             </div>
           </section>
@@ -290,15 +333,12 @@
               <div class="metric"><div class="k">差し戻し</div><div class="v" id="metricRejected">0</div></div>
               <div class="metric"><div class="k">期限超過</div><div class="v" id="metricExpired">0</div></div>
             </div>
-            <div class="card">
-              <div class="card-head"><h3>最近の差し戻し</h3></div>
-              <div class="card-body" id="recentRejectedBox"></div>
-            </div>
+            <div class="card"><div class="card-head"><h3>最近の差し戻し</h3></div><div class="card-body" id="recentRejectedBox"></div></div>
           </section>
 
           <section class="admin-tab hidden" data-admin-screen="list">
             <div class="card">
-              <div class="card-head"><h3>提出一覧</h3><p>検索・状態・所属・期限超過条件で絞り込みます。</p></div>
+              <div class="card-head"><h3>提出一覧</h3></div>
               <div class="card-body">
                 <div class="toolbar">
                   <input class="input" id="filterKeyword" placeholder="氏名 / 従業員コードで検索" />
@@ -330,8 +370,8 @@
               <div class="card-head"><h3 id="detailTitle">個別詳細</h3></div>
               <div class="card-body">
                 <div class="split">
-                  <div class="camera-stage"><img id="detailOriginalImage" class="preview" alt="original"></div>
-                  <div class="camera-stage"><img id="detailNormalizedImage" class="preview" alt="normalized"></div>
+                  <div class="preview-card"><img id="detailOriginalImage" class="preview" alt="original"></div>
+                  <div class="preview-card"><img id="detailNormalizedImage" class="preview" alt="normalized"></div>
                 </div>
                 <div class="grid2">
                   <div class="summary">
@@ -348,10 +388,7 @@
                     <button class="btn secondary" id="saveMemoBtn">メモ保存</button>
                   </div>
                 </div>
-                <div class="field">
-                  <div class="label">差し戻し理由</div>
-                  <div class="info" id="detailRejectHistory">差し戻し履歴はありません。</div>
-                </div>
+                <div class="field"><div class="label">差し戻し理由</div><div class="info" id="detailRejectHistory">差し戻し履歴はありません。</div></div>
                 <div class="field">
                   <div class="label">レビュー操作</div>
                   <div class="grid2">
@@ -402,935 +439,516 @@
     </section>
   </main>
 
+  <section id="cameraOverlay" class="camera-overlay hidden">
+    <div class="camera-top">
+      <button class="icon-btn" id="closeCameraOverlay">×</button>
+      <div style="text-align:center">
+        <div class="camera-title">顔写真を撮影してください</div>
+        <div class="camera-sub">顔と肩がガイド枠に収まるように合わせてください</div>
+      </div>
+      <button class="icon-btn" id="cameraInfoBtn">i</button>
+    </div>
+    <div class="camera-stage">
+      <video id="cameraVideo" class="camera-video" autoplay muted playsinline></video>
+      <img id="cameraCaptured" class="camera-captured hidden" alt="captured">
+      <div class="camera-overlay-mask" id="cameraMaskLayer">
+        <div class="guide-label">顔と肩をこの枠に合わせる</div>
+        <div class="guide-frame">
+          <div class="guide-head"></div>
+          <div class="guide-shoulder"></div>
+        </div>
+      </div>
+    </div>
+    <div class="camera-bottom">
+      <div id="captureMessage" class="capture-message warn">カメラを起動して、顔を枠の中央に合わせてください。</div>
+      <div class="camera-actions">
+        <button class="side-link" id="overlayFileBtn">写真を選ぶ</button>
+        <button class="shutter" id="overlayCaptureBtn" disabled aria-label="撮影"></button>
+        <button class="side-link right" id="overlaySwitchCameraBtn" disabled>切替</button>
+      </div>
+      <div class="camera-mini-note" id="cameraMiniNote">頭頂から肩までが枠に収まると撮りやすいです。</div>
+      <div class="btn-row hidden" id="overlayRetakeArea" style="justify-content:center">
+        <button class="btn secondary" id="overlayRetakeBtn">撮り直す</button>
+        <button class="btn primary" id="overlayUsePhotoBtn">この写真で進む</button>
+      </div>
+      <select class="select hidden" id="cameraDeviceSelect"></select>
+    </div>
+  </section>
+
   <canvas id="captureCanvas" class="hidden"></canvas>
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
-    const APP = { storageKey:'badge_photo_app_demo_v4' };
-    const REJECT_REASON_MASTER = [
-      { code:'FACE_TOO_SMALL', label:'顔が小さい', employeeText:'顔が小さく写っています' },
-      { code:'FACE_CROPPED', label:'顔が切れている', employeeText:'顔の一部が切れています' },
-      { code:'TOO_DARK', label:'暗い', employeeText:'写真が暗く見えます' },
-      { code:'BLURRY', label:'ピンぼけ', employeeText:'写真がぼやけています' },
-      { code:'BACKGROUND_NOISY', label:'背景が不適', employeeText:'背景に不要なものが写っています' },
-      { code:'MULTIPLE_PEOPLE', label:'複数人が写っている', employeeText:'複数人が写っています' },
-      { code:'MASK_OR_HAT', label:'顔遮蔽あり', employeeText:'顔が隠れています' },
-      { code:'NOT_FRONT_FACE', label:'正面でない', employeeText:'正面を向いていません' },
-      { code:'OTHER', label:'その他', employeeText:'再提出のお願いがあります' }
-    ];
+    const APP={storageKey:'badge_photo_app_demo_v6'};
+    const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
+    const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]}}};
+    const $=id=>document.getElementById(id);
+    const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect')};
 
-    const state = {
-      db:null, mode:'employee', employeeStep:1, employeeSession:null,
-      employeeSourceType:'', employeeCaptureBlob:null, employeeCaptureUrl:'',
-      employeeQuality:{ score:null, level:'warn', message:'未評価', rejectCandidates:[] },
-      selectedSubmissionId:null, currentAdminTab:'dashboard', currentRole:'reviewer',
-      camera:{ stream:null, devices:[], currentDeviceId:'', facingMode:'user', detector:null, timer:null }
-    };
-
-    const els = {
-      switchEmployee: document.getElementById('switchEmployee'),
-      switchAdmin: document.getElementById('switchAdmin'),
-      employeeApp: document.getElementById('employeeApp'),
-      adminApp: document.getElementById('adminApp'),
-      employeeStatusLabel: document.getElementById('employeeStatusLabel'),
-      employeeDeadlineLabel: document.getElementById('employeeDeadlineLabel'),
-      progressFill: document.getElementById('progressFill'),
-      stepIndicators: Array.from(document.querySelectorAll('#stepIndicators .step')),
-      screens: Array.from(document.querySelectorAll('#employeeApp .screen')),
-      tokenInput: document.getElementById('tokenInput'),
-      employeeNameText: document.getElementById('employeeNameText'),
-      employeeCodeText: document.getElementById('employeeCodeText'),
-      employeeDeptText: document.getElementById('employeeDeptText'),
-      employeeFileNameText: document.getElementById('employeeFileNameText'),
-      startCameraBtn: document.getElementById('startCameraBtn'),
-      captureBtn: document.getElementById('captureBtn'),
-      retakeBtn: document.getElementById('retakeBtn'),
-      fileModeBtn: document.getElementById('fileModeBtn'),
-      switchCameraBtn: document.getElementById('switchCameraBtn'),
-      fileInput: document.getElementById('fileInput'),
-      cameraSelect: document.getElementById('cameraSelect'),
-      video: document.getElementById('video'),
-      previewImage: document.getElementById('previewImage'),
-      videoOverlay: document.getElementById('videoOverlay'),
-      captureHint: document.getElementById('captureHint'),
-      captureContextText: document.getElementById('captureContextText'),
-      reviewImage: document.getElementById('reviewImage'),
-      reviewCode: document.getElementById('reviewCode'),
-      reviewName: document.getElementById('reviewName'),
-      reviewDept: document.getElementById('reviewDept'),
-      reviewFileName: document.getElementById('reviewFileName'),
-      reviewSourceType: document.getElementById('reviewSourceType'),
-      qualityChip: document.getElementById('qualityChip'),
-      qualityMessage: document.getElementById('qualityMessage'),
-      completeFileName: document.getElementById('completeFileName'),
-      rejectReasonList: document.getElementById('rejectReasonList'),
-      rejectCommentText: document.getElementById('rejectCommentText'),
-      resubmitBtn: document.getElementById('resubmitBtn'),
-      resubmitFileBtn: document.getElementById('resubmitFileBtn'),
-      backBtn: document.getElementById('backBtn'),
-      nextBtn: document.getElementById('nextBtn'),
-      captureCanvas: document.getElementById('captureCanvas'),
-      analysisCanvas: document.getElementById('analysisCanvas'),
-      adminRoleSelect: document.getElementById('adminRoleSelect'),
-      adminTabs: Array.from(document.querySelectorAll('.admin-tab')),
-      adminSubnavBtns: Array.from(document.querySelectorAll('.subnav-btn')),
-      metricTotal: document.getElementById('metricTotal'),
-      metricNotStarted: document.getElementById('metricNotStarted'),
-      metricSubmitted: document.getElementById('metricSubmitted'),
-      metricApproved: document.getElementById('metricApproved'),
-      metricRejected: document.getElementById('metricRejected'),
-      metricExpired: document.getElementById('metricExpired'),
-      recentRejectedBox: document.getElementById('recentRejectedBox'),
-      filterKeyword: document.getElementById('filterKeyword'),
-      filterStatus: document.getElementById('filterStatus'),
-      filterDept: document.getElementById('filterDept'),
-      filterOverdue: document.getElementById('filterOverdue'),
-      applyFilterBtn: document.getElementById('applyFilterBtn'),
-      submissionTableBody: document.getElementById('submissionTableBody'),
-      detailEmpty: document.getElementById('detailEmpty'),
-      detailCard: document.getElementById('detailCard'),
-      detailTitle: document.getElementById('detailTitle'),
-      detailOriginalImage: document.getElementById('detailOriginalImage'),
-      detailNormalizedImage: document.getElementById('detailNormalizedImage'),
-      detailCode: document.getElementById('detailCode'),
-      detailName: document.getElementById('detailName'),
-      detailDept: document.getElementById('detailDept'),
-      detailStatus: document.getElementById('detailStatus'),
-      detailSubmittedAt: document.getElementById('detailSubmittedAt'),
-      detailScore: document.getElementById('detailScore'),
-      detailMemo: document.getElementById('detailMemo'),
-      saveMemoBtn: document.getElementById('saveMemoBtn'),
-      detailRejectHistory: document.getElementById('detailRejectHistory'),
-      approveComment: document.getElementById('approveComment'),
-      approveBtn: document.getElementById('approveBtn'),
-      rejectReasonChecks: document.getElementById('rejectReasonChecks'),
-      rejectComment: document.getElementById('rejectComment'),
-      notifyEmployeeCheck: document.getElementById('notifyEmployeeCheck'),
-      rejectBtn: document.getElementById('rejectBtn'),
-      exportDept: document.getElementById('exportDept'),
-      exportFrom: document.getElementById('exportFrom'),
-      exportTo: document.getElementById('exportTo'),
-      exportCsvBtn: document.getElementById('exportCsvBtn'),
-      exportZipBtn: document.getElementById('exportZipBtn'),
-      exportLogBox: document.getElementById('exportLogBox'),
-      notificationLogBox: document.getElementById('notificationLogBox'),
-      auditLogBox: document.getElementById('auditLogBox'),
-      seedBtn: document.getElementById('seedBtn'),
-      resetBtn: document.getElementById('resetBtn')
-    };
-
-    const STEP_MAP = { 1:'start', 2:'capture', 3:'review', 4:'complete', 5:'resubmit' };
-
-    function uid(prefix){ return `${prefix}_${Math.random().toString(36).slice(2,10)}_${Date.now().toString(36)}`; }
-    function nowIso(){ return new Date().toISOString(); }
-    function fmtDate(iso){ return iso ? new Date(iso).toLocaleString('ja-JP') : '-'; }
-    function toYmd(iso){ return iso ? new Date(iso).toISOString().slice(0,10) : '-'; }
-    function escapeHtml(str){ return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
-    function sanitizeFilePart(value, fallback='unknown'){
-      const cleaned = String(value || '').trim().replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,'_').replace(/^_+|_+$/g,'');
-      return cleaned || fallback;
-    }
-    function buildLogicalFileName(emp){ return `${sanitizeFilePart(emp.employeeCode,'employee')}_${sanitizeFilePart(emp.employeeName,'name')}.jpg`; }
-
-    function createPlaceholder(w,h,bg,text){
-      const c = document.createElement('canvas'); c.width=w; c.height=h;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
-      ctx.fillStyle = '#002045'; ctx.textAlign='center'; ctx.font = `${Math.max(18,w/18)}px sans-serif`;
-      text.split('\n').forEach((line, idx)=> ctx.fillText(line, w/2, h/2 + idx*34));
-      return c.toDataURL('image/jpeg', .92);
-    }
-
-    function saveDb(){ localStorage.setItem(APP.storageKey, JSON.stringify(state.db)); }
-    function loadDb(){
-      try{
-        const raw = localStorage.getItem(APP.storageKey);
-        state.db = raw ? JSON.parse(raw) : null;
-      }catch(e){ state.db = null; }
-      if(!state.db) seedDemoData();
-    }
-
+    function uid(p){return `${p}_${Math.random().toString(36).slice(2,10)}_${Date.now().toString(36)}`;}
+    function nowIso(){return new Date().toISOString();}
+    function fmtDate(i){return i?new Date(i).toLocaleString('ja-JP'):'-';}
+    function toYmd(i){return i?new Date(i).toISOString().slice(0,10):'-';}
+    function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+    function sanitizeFilePart(v,f='unknown'){const c=String(v||'').trim().replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,'_').replace(/^_+|_+$/g,'');return c||f;}
+    function buildLogicalFileName(emp){return `${sanitizeFilePart(emp.employeeCode,'employee')}_${sanitizeFilePart(emp.employeeName,'name')}.jpg`;}
+    function createPlaceholder(w,h,bg,text){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,w,h);x.fillStyle='#002045';x.textAlign='center';x.font=`${Math.max(18,w/18)}px sans-serif`;text.split('\n').forEach((line,i)=>x.fillText(line,w/2,h/2+i*34));return c.toDataURL('image/jpeg',.92);}
+    function saveDb(){localStorage.setItem(APP.storageKey,JSON.stringify(state.db));}
     function seedDemoData(){
-      const now = new Date();
-      const d = days => new Date(now.getTime() + days*24*60*60*1000).toISOString();
-      const employees = [
-        { employeeId:'emp_1', employeeCode:'000123', employeeName:'山田 太郎', departmentCode:'HR', departmentName:'人事部', email:'yamada@example.com' },
-        { employeeId:'emp_2', employeeCode:'000124', employeeName:'佐藤 花子', departmentCode:'GA', departmentName:'総務部', email:'sato@example.com' },
-        { employeeId:'emp_3', employeeCode:'000125', employeeName:'鈴木 一郎', departmentCode:'FA', departmentName:'工場A', email:'suzuki@example.com' },
-        { employeeId:'emp_4', employeeCode:'000126', employeeName:'高橋 美咲', departmentCode:'SA', departmentName:'営業部', email:'takahashi@example.com' }
-      ];
-      const req = (id, employeeId, token, status, deadline) => ({
-        requestId:id, employeeId, campaignCode:'badge_2026', requestStatus:status, deadlineAt:deadline, accessTokenHash:token, updatedAt:nowIso()
-      });
-      const sub1 = { submissionId:'sub_1', requestId:'req_1', submissionNo:1, sourceType:'camera', submittedAt:d(-1), qualityScore:86, autoCheckResult:'pass', currentStatus:'approved', finalizedAt:d(0), memo:'' };
-      const sub2 = { submissionId:'sub_2', requestId:'req_2', submissionNo:1, sourceType:'upload', submittedAt:d(-1), qualityScore:62, autoCheckResult:'warn', currentStatus:'rejected', finalizedAt:d(0), memo:'背景確認要' };
-      const asset = (id, submissionId, assetType, color) => ({
-        assetId:id, submissionId, assetType, fileName:'demo.jpg',
-        storagePath:`/demo/${submissionId}/${assetType}.jpg`,
-        previewDataUrl:createPlaceholder(assetType==='thumbnail'?180:900, assetType==='thumbnail'?240:1200, color, `${submissionId}\n${assetType}`)
-      });
-
-      state.db = {
-        employees,
-        submissionRequests:[
-          req('req_1','emp_1','demo-000123','approved',d(10)),
-          req('req_2','emp_2','demo-000124','rejected',d(7)),
-          req('req_3','emp_3','demo-000125','not_started',d(5)),
-          req('req_4','emp_4','demo-000126','expired',d(-1)),
-        ],
-        submissions:[sub1, sub2],
-        photoAssets:[
-          asset('a1','sub_1','original','#c7d8ef'),
-          asset('a2','sub_1','normalized','#dcebd8'),
-          asset('a3','sub_1','thumbnail','#dcebd8'),
-          asset('a4','sub_2','original','#f1d4d4'),
-          asset('a5','sub_2','normalized','#f2e8c8'),
-          asset('a6','sub_2','thumbnail','#f2e8c8'),
-        ],
-        reviews:[
-          { reviewId:'rev_1', submissionId:'sub_1', reviewAction:'approve', reviewResultCodes:['APPROVED'], reviewComment:'社員証発行に使用可', reviewedBy:'reviewer', reviewedAt:d(0) },
-          { reviewId:'rev_2', submissionId:'sub_2', reviewAction:'reject', reviewResultCodes:['BACKGROUND_NOISY','FACE_TOO_SMALL'], reviewComment:'背景の棚が写っているため、壁の前で再撮影してください。', reviewedBy:'reviewer', reviewedAt:d(0) }
-        ],
-        notifications:[
-          { notificationId:'noti_1', employeeId:'emp_2', requestId:'req_2', templateCode:'REQ_REJECTED', channel:'email', sentAt:d(0), status:'sent' }
-        ],
-        exports:[],
-        exportItems:[],
-        auditLogs:[
-          { auditLogId:'aud_1', actorType:'admin', actorId:'reviewer', resourceType:'submission', resourceId:'sub_2', action:'ADMIN_REJECTED', createdAt:d(0) }
-        ]
-      };
+      const now=new Date(); const d=days=>new Date(now.getTime()+days*86400000).toISOString();
+      const employees=[{employeeId:'emp_1',employeeCode:'000123',employeeName:'山田 太郎',departmentCode:'HR',departmentName:'人事部',email:'yamada@example.com'},{employeeId:'emp_2',employeeCode:'000124',employeeName:'佐藤 花子',departmentCode:'GA',departmentName:'総務部',email:'sato@example.com'},{employeeId:'emp_3',employeeCode:'000125',employeeName:'鈴木 一郎',departmentCode:'FA',departmentName:'工場A',email:'suzuki@example.com'},{employeeId:'emp_4',employeeCode:'000126',employeeName:'高橋 美咲',departmentCode:'SA',departmentName:'営業部',email:'takahashi@example.com'}];
+      const req=(id,employeeId,token,status,deadline)=>({requestId:id,employeeId,campaignCode:'badge_2026',requestStatus:status,deadlineAt:deadline,accessTokenHash:token,updatedAt:nowIso()});
+      const sub1={submissionId:'sub_1',requestId:'req_1',submissionNo:1,sourceType:'camera',submittedAt:d(-1),qualityScore:86,autoCheckResult:'pass',currentStatus:'approved',finalizedAt:d(0),memo:''};
+      const sub2={submissionId:'sub_2',requestId:'req_2',submissionNo:1,sourceType:'upload',submittedAt:d(-1),qualityScore:62,autoCheckResult:'warn',currentStatus:'rejected',finalizedAt:d(0),memo:'背景確認要'};
+      const asset=(id,submissionId,assetType,color)=>({assetId:id,submissionId,assetType,fileName:'demo.jpg',storagePath:`/demo/${submissionId}/${assetType}.jpg`,previewDataUrl:createPlaceholder(assetType==='thumbnail'?180:900,assetType==='thumbnail'?240:1200,color,`${submissionId}\n${assetType}`)});
+      state.db={employees,submissionRequests:[req('req_1','emp_1','demo-000123','approved',d(10)),req('req_2','emp_2','demo-000124','rejected',d(7)),req('req_3','emp_3','demo-000125','not_started',d(5)),req('req_4','emp_4','demo-000126','expired',d(-1))],submissions:[sub1,sub2],photoAssets:[asset('a1','sub_1','original','#c7d8ef'),asset('a2','sub_1','normalized','#dcebd8'),asset('a3','sub_1','thumbnail','#dcebd8'),asset('a4','sub_2','original','#f1d4d4'),asset('a5','sub_2','normalized','#f2e8c8'),asset('a6','sub_2','thumbnail','#f2e8c8')],reviews:[{reviewId:'rev_1',submissionId:'sub_1',reviewAction:'approve',reviewResultCodes:['APPROVED'],reviewComment:'社員証発行に使用可',reviewedBy:'reviewer',reviewedAt:d(0)},{reviewId:'rev_2',submissionId:'sub_2',reviewAction:'reject',reviewResultCodes:['BACKGROUND_NOISY','FACE_TOO_SMALL'],reviewComment:'背景の棚が写っているため、壁の前で再撮影してください。',reviewedBy:'reviewer',reviewedAt:d(0)}],notifications:[{notificationId:'noti_1',employeeId:'emp_2',requestId:'req_2',templateCode:'REQ_REJECTED',channel:'email',sentAt:d(0),status:'sent'}],exports:[],exportItems:[],auditLogs:[{auditLogId:'aud_1',actorType:'admin',actorId:'reviewer',resourceType:'submission',resourceId:'sub_2',action:'ADMIN_REJECTED',createdAt:d(0)}]};
       saveDb();
     }
-
-    function findSessionByToken(token){
-      const req = state.db.submissionRequests.find(r => r.accessTokenHash === token);
-      if(!req) return null;
-      const emp = state.db.employees.find(e => e.employeeId === req.employeeId);
-      return emp ? { request:req, employee:emp } : null;
-    }
-    function getRequestById(id){ return state.db.submissionRequests.find(r => r.requestId === id); }
-    function getEmployeeById(id){ return state.db.employees.find(e => e.employeeId === id); }
-    function getSubmissionsByRequest(requestId){ return state.db.submissions.filter(s => s.requestId === requestId).sort((a,b)=>a.submissionNo-b.submissionNo); }
-    function getLatestSubmissionByRequest(requestId){ const list = getSubmissionsByRequest(requestId); return list[list.length-1] || null; }
-    function getAssetsBySubmission(submissionId){ return state.db.photoAssets.filter(a => a.submissionId === submissionId); }
-    function getLatestReview(submissionId){
-      const list = state.db.reviews.filter(r => r.submissionId === submissionId).sort((a,b)=>new Date(a.reviewedAt)-new Date(b.reviewedAt));
-      return list[list.length-1] || null;
-    }
-    function currentRequest(){ return state.employeeSession?.request || null; }
-    function currentEmployee(){ return state.employeeSession?.employee || null; }
-
-    function employeeStatusLabel(status){
-      const map = { not_started:'未着手', submitted:'提出済み', approved:'承認', rejected:'差し戻し', expired:'期限超過' };
-      return map[status] || status || '-';
-    }
-
-    function setMode(mode){
-      state.mode = mode;
-      els.switchEmployee.classList.toggle('active', mode === 'employee');
-      els.switchAdmin.classList.toggle('active', mode === 'admin');
-      els.employeeApp.classList.toggle('hidden', mode !== 'employee');
-      els.adminApp.classList.toggle('hidden', mode !== 'admin');
-    }
-
-    function employeeProgressStep(step){
-      if(step === 5) return 2;
-      return Math.min(step,4);
-    }
-
+    function loadDb(){try{const raw=localStorage.getItem(APP.storageKey);state.db=raw?JSON.parse(raw):null;}catch(e){state.db=null;} if(!state.db) seedDemoData();}
+    function findSessionByToken(t){const req=state.db.submissionRequests.find(r=>r.accessTokenHash===t);if(!req)return null;const emp=state.db.employees.find(e=>e.employeeId===req.employeeId);return emp?{request:req,employee:emp}:null;}
+    function getRequestById(id){return state.db.submissionRequests.find(r=>r.requestId===id);}
+    function getEmployeeById(id){return state.db.employees.find(e=>e.employeeId===id);}
+    function getSubmissionsByRequest(id){return state.db.submissions.filter(s=>s.requestId===id).sort((a,b)=>a.submissionNo-b.submissionNo);}
+    function getLatestSubmissionByRequest(id){const list=getSubmissionsByRequest(id);return list[list.length-1]||null;}
+    function getAssetsBySubmission(id){return state.db.photoAssets.filter(a=>a.submissionId===id);}
+    function getLatestReview(id){const list=state.db.reviews.filter(r=>r.submissionId===id).sort((a,b)=>new Date(a.reviewedAt)-new Date(b.reviewedAt));return list[list.length-1]||null;}
+    function currentRequest(){return state.employeeSession?.request||null;}
+    function currentEmployee(){return state.employeeSession?.employee||null;}
+    function employeeStatusLabel(s){const map={not_started:'未着手',submitted:'提出済み',approved:'承認',rejected:'差し戻し',expired:'期限超過'};return map[s]||s||'-';}
+    function setMode(mode){state.mode=mode;els.switchEmployee.classList.toggle('active',mode==='employee');els.switchAdmin.classList.toggle('active',mode==='admin');els.employeeApp.classList.toggle('hidden',mode!=='employee');els.adminApp.classList.toggle('hidden',mode!=='admin');}
+    function employeeProgressStep(step){return step===5?2:Math.min(step,4);}
     function showEmployeeStep(step){
-      state.employeeStep = step;
-      els.screens.forEach(screen => screen.classList.toggle('hidden', Number(screen.dataset.screen) !== step));
-      const mapped = employeeProgressStep(step);
-      els.stepIndicators.forEach(dot => {
-        const s = Number(dot.dataset.step);
-        dot.classList.toggle('active', s === mapped);
-        dot.classList.toggle('done', s < mapped);
-      });
-      els.progressFill.style.width = `${(mapped/4)*100}%`;
-
-      if(step === 1){
-        els.backBtn.disabled = true;
-        els.nextBtn.textContent = '撮影へ進む';
-        els.nextBtn.classList.remove('hidden');
-      }else if(step === 2){
-        els.backBtn.disabled = false;
-        els.nextBtn.classList.add('hidden');
-      }else if(step === 3){
-        els.backBtn.disabled = false;
-        els.nextBtn.classList.remove('hidden');
-        els.nextBtn.textContent = '提出する';
-        fillReview();
-      }else if(step === 4){
-        els.backBtn.classList.add('hidden');
-        els.nextBtn.classList.add('hidden');
-      }else if(step === 5){
-        els.backBtn.classList.remove('hidden');
-        els.backBtn.disabled = false;
-        els.nextBtn.classList.add('hidden');
-        fillRejectPanel();
-      } else {
-        els.backBtn.classList.remove('hidden');
-      }
-      if(step !== 4){ els.backBtn.classList.remove('hidden'); }
-      window.scrollTo({ top:0, behavior:'smooth' });
+      state.employeeStep=step;
+      els.screens.forEach(screen=>screen.classList.toggle('hidden',Number(screen.dataset.screen)!==step));
+      const mapped=employeeProgressStep(step);
+      els.stepIndicators.forEach(dot=>{const s=Number(dot.dataset.step);dot.classList.toggle('active',s===mapped);dot.classList.toggle('done',s<mapped);});
+      els.progressFill.style.width=`${(mapped/4)*100}%`;
+      if(step===1){els.backBtn.disabled=true;els.nextBtn.textContent='撮影方法へ進む';els.nextBtn.classList.remove('hidden');}
+      else if(step===2){els.backBtn.disabled=false;els.nextBtn.classList.remove('hidden');els.nextBtn.textContent='確認へ進む';}
+      else if(step===3){els.backBtn.disabled=false;els.nextBtn.classList.remove('hidden');els.nextBtn.textContent='提出する';fillReview();}
+      else if(step===4){els.backBtn.classList.add('hidden');els.nextBtn.classList.add('hidden');}
+      else if(step===5){els.backBtn.classList.remove('hidden');els.backBtn.disabled=false;els.nextBtn.classList.add('hidden');fillRejectPanel();}
+      if(step!==4) els.backBtn.classList.remove('hidden');
+      window.scrollTo({top:0,behavior:'smooth'});
     }
-
     function updateEmployeeHeader(){
-      const req = currentRequest();
-      const emp = currentEmployee();
-      els.employeeStatusLabel.textContent = `状態: ${employeeStatusLabel(req?.requestStatus)}`;
-      els.employeeDeadlineLabel.textContent = `提出期限: ${req ? toYmd(req.deadlineAt) : '-'}`;
-      els.employeeNameText.textContent = emp?.employeeName || '-';
-      els.employeeCodeText.textContent = emp?.employeeCode || '-';
-      els.employeeDeptText.textContent = emp?.departmentName || '-';
-      els.employeeFileNameText.textContent = emp ? buildLogicalFileName(emp) : '-';
+      const req=currentRequest(), emp=currentEmployee();
+      els.employeeStatusLabel.textContent=`状態: ${employeeStatusLabel(req?.requestStatus)}`;
+      els.employeeDeadlineLabel.textContent=`提出期限: ${req?toYmd(req.deadlineAt):'-'}`;
+      els.employeeNameText.textContent=emp?.employeeName||'-';
+      els.employeeCodeText.textContent=emp?.employeeCode||'-';
+      els.employeeDeptText.textContent=emp?.departmentName||'-';
+      els.employeeFileNameText.textContent=emp?buildLogicalFileName(emp):'-';
     }
-
-    function setCaptureHint(level, text){
-      els.captureHint.className = `capture-hint ${level}`;
-      els.captureHint.textContent = text;
+    function setCaptureMessage(level,text,note=''){
+      els.captureMessage.className=`capture-message ${level}`;
+      els.captureMessage.textContent=text;
+      els.cameraMiniNote.textContent=note||(level==='ok'?'写りがよければ、そのまま撮影してください。':'頭頂から肩までが枠に収まるように合わせてください。');
     }
-
     async function loadDevices(){
       try{
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        state.camera.devices = devices.filter(d => d.kind === 'videoinput');
-        els.cameraSelect.innerHTML = '';
-        state.camera.devices.forEach((device, index) => {
-          const o = document.createElement('option');
-          o.value = device.deviceId; o.textContent = device.label || `カメラ ${index+1}`;
-          els.cameraSelect.appendChild(o);
+        const devices=await navigator.mediaDevices.enumerateDevices();
+        state.camera.devices=devices.filter(d=>d.kind==='videoinput');
+        els.cameraDeviceSelect.innerHTML='';
+        state.camera.devices.forEach((device,index)=>{
+          const o=document.createElement('option');
+          o.value=device.deviceId;
+          o.textContent=device.label||`カメラ ${index+1}`;
+          els.cameraDeviceSelect.appendChild(o);
         });
-      }catch(e){ console.warn(e); }
+      }catch(e){console.warn(e);}
     }
-
-    function stopCamera(){
-      if(state.camera.stream){
-        state.camera.stream.getTracks().forEach(t => t.stop());
-        state.camera.stream = null;
-      }
-      if(state.camera.timer){
-        clearInterval(state.camera.timer);
-        state.camera.timer = null;
-      }
-    }
-
-    function setupDetector(){
-      if('FaceDetector' in window){
-        try{
-          state.camera.detector = new FaceDetector({ fastMode:true, maxDetectedFaces:2 });
-          return;
-        }catch(e){}
-      }
-      state.camera.detector = null;
-    }
-
-    async function startCamera(deviceId=''){
-      if(!navigator.mediaDevices?.getUserMedia){
-        alert('この端末・ブラウザではカメラに対応していません。保存済み写真を選択してください。');
-        return;
-      }
+    function stopCamera(){if(state.camera.stream){state.camera.stream.getTracks().forEach(t=>t.stop());state.camera.stream=null;} if(state.camera.timer){clearInterval(state.camera.timer);state.camera.timer=null;}}
+    function setupDetector(){if('FaceDetector' in window){try{state.camera.detector=new FaceDetector({fastMode:true,maxDetectedFaces:2});return;}catch(e){}}state.camera.detector=null;}
+    async function openCameraOverlay(deviceId=''){
+      state.camera.overlayOpen=true;
+      els.cameraOverlay.classList.remove('hidden');
+      els.cameraCaptured.classList.add('hidden');
+      els.cameraCaptured.src='';
+      els.cameraVideo.classList.remove('hidden');
+      els.cameraMaskLayer.classList.remove('hidden');
+      els.overlayRetakeArea.classList.add('hidden');
+      els.overlayCaptureBtn.disabled=true;
+      setCaptureMessage('warn','カメラを起動して、顔と肩を枠に合わせてください。');
+      if(!navigator.mediaDevices?.getUserMedia){alert('この端末・ブラウザではカメラに対応していません。保存済み写真を選択してください。');closeCameraOverlay();return;}
       try{
         stopCamera();
-        resetCapture(false);
-        const constraints = {
-          audio:false,
-          video: deviceId
-            ? { deviceId:{ exact:deviceId }, width:{ ideal:1080 }, height:{ ideal:1440 } }
-            : { facingMode:{ ideal:state.camera.facingMode }, width:{ ideal:1080 }, height:{ ideal:1440 } }
-        };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        state.camera.stream = stream;
-        els.video.srcObject = stream;
-        await els.video.play();
-        const track = stream.getVideoTracks()[0];
-        state.camera.currentDeviceId = track.getSettings().deviceId || deviceId || '';
+        const constraints={audio:false,video:deviceId?{deviceId:{exact:deviceId},width:{ideal:1080},height:{ideal:1440}}:{facingMode:{ideal:state.camera.facingMode},width:{ideal:1080},height:{ideal:1440}}};
+        const stream=await navigator.mediaDevices.getUserMedia(constraints);
+        state.camera.stream=stream;
+        els.cameraVideo.srcObject=stream;
+        await els.cameraVideo.play();
+        const track=stream.getVideoTracks()[0];
+        state.camera.currentDeviceId=track.getSettings().deviceId||deviceId||'';
         setupDetector();
         await loadDevices();
-        els.captureBtn.disabled = false;
-        els.switchCameraBtn.disabled = state.camera.devices.length < 2;
-        setCaptureHint('warn', '顔を枠の中央に合わせてください。');
+        els.overlayCaptureBtn.disabled=false;
+        els.overlaySwitchCameraBtn.disabled=state.camera.devices.length<2;
         startCameraAssessmentLoop();
-      }catch(err){
-        console.error(err);
-        alert('カメラを起動できませんでした。保存済み写真を選択してください。');
-      }
+      }catch(err){console.error(err);alert('カメラを起動できませんでした。保存済み写真を選択してください。');closeCameraOverlay();}
     }
-
+    function closeCameraOverlay(){state.camera.overlayOpen=false;stopCamera();els.cameraOverlay.classList.add('hidden');}
     function assessBrightness(ctx,w,h){
-      const sampleW = Math.floor(w*.44), sampleH = Math.floor(h*.44);
-      const sx = Math.floor((w-sampleW)/2), sy = Math.floor((h-sampleH)/2);
-      const data = ctx.getImageData(sx, sy, sampleW, sampleH).data;
-      let total = 0;
-      for(let i=0;i<data.length;i+=16){
-        total += 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
-      }
-      const avg = total / (data.length/16);
-      if(avg >= 125) return { tone:'ok', score:30 };
-      if(avg >= 90) return { tone:'warn', score:18 };
-      return { tone:'ng', score:5 };
+      const sampleW=Math.floor(w*.44), sampleH=Math.floor(h*.44);
+      const sx=Math.floor((w-sampleW)/2), sy=Math.floor((h-sampleH)/2);
+      const data=ctx.getImageData(sx,sy,sampleW,sampleH).data;
+      let total=0;
+      for(let i=0;i<data.length;i+=16){total+=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];}
+      const avg=total/(data.length/16);
+      if(avg>=125) return {tone:'ok',score:30};
+      if(avg>=90) return {tone:'warn',score:18};
+      return {tone:'ng',score:5};
     }
-
     function fallbackAssessment(brightness){
-      const level = brightness.tone === 'ng' ? 'ng' : brightness.tone === 'warn' ? 'warn' : 'ok';
-      const message = brightness.tone === 'ng'
-        ? '明るい場所で撮影してください。'
-        : '枠の中央に顔を合わせたら撮影してください。';
-      const score = Math.min(100, brightness.score + 35);
-      return { level, message, score, rejectCandidates: brightness.tone === 'ng' ? ['TOO_DARK'] : [] };
+      const level=brightness.tone==='ng'?'ng':brightness.tone==='warn'?'warn':'ok';
+      const message=brightness.tone==='ng'?'明るい場所で撮影してください。':'枠の中央に顔と肩を合わせてください。';
+      const score=Math.min(100,brightness.score+35);
+      return {level,message,score,rejectCandidates:brightness.tone==='ng'?['TOO_DARK']:[]};
     }
-
-    function withFaceAssessment(faces, w, h, brightness){
-      if(!faces || faces.length === 0){
-        return { level:'warn', message:'顔を枠の中央に合わせてください。', score:20 + brightness.score, rejectCandidates:['OTHER'] };
-      }
-      if(faces.length > 1){
-        return { level:'ng', message:'本人だけが写るようにしてください。', score:15 + brightness.score, rejectCandidates:['MULTIPLE_PEOPLE'] };
-      }
-      const box = faces[0].boundingBox;
-      const centerX = box.x + box.width/2;
-      const centerY = box.y + box.height/2;
-      const guideX = w/2, guideY = h*0.46;
-      const dx = Math.abs(centerX-guideX)/w, dy = Math.abs(centerY-guideY)/h;
-      const ratio = box.height/h;
-      let score = brightness.score + 10;
-      const rejects = [];
-      let message = 'そのままで撮影できます。';
-      let level = brightness.tone === 'ng' ? 'ng' : 'ok';
-      if(dx > 0.12 || dy > 0.12){
-        level = 'warn';
-        message = '顔を枠の中央に合わせてください。';
-        score += 8;
-      } else {
-        score += 22;
-      }
-      if(ratio < 0.26){
-        level = 'warn';
-        message = '少し近づいてください。';
-        rejects.push('FACE_TOO_SMALL');
-        score += 6;
-      } else if(ratio <= 0.48){
-        score += 22;
-      } else {
-        score += 10;
-      }
-      if(brightness.tone === 'ng'){
-        level = 'ng';
-        message = '明るい場所で撮影してください。';
-        rejects.push('TOO_DARK');
-      } else if(brightness.tone === 'warn' && level === 'ok'){
-        level = 'warn';
-        message = 'もう少し明るい場所だと撮りやすいです。';
-      }
-      return { level, message, score:Math.min(100, score), rejectCandidates:[...new Set(rejects)] };
+    function withFaceAssessment(faces,w,h,brightness){
+      if(!faces||faces.length===0) return {level:'warn',message:'顔を枠の中央に合わせてください。',score:20+brightness.score,rejectCandidates:['OTHER']};
+      if(faces.length>1) return {level:'ng',message:'本人だけが写るようにしてください。',score:15+brightness.score,rejectCandidates:['MULTIPLE_PEOPLE']};
+      const box=faces[0].boundingBox;
+      const centerX=box.x+box.width/2, centerY=box.y+box.height/2;
+      const guideX=w/2, guideY=h*0.42;
+      const dx=Math.abs(centerX-guideX)/w, dy=Math.abs(centerY-guideY)/h;
+      const ratio=box.height/h;
+      let score=brightness.score+10;
+      const rejects=[];
+      let message='そのままで撮影できます。';
+      let level=brightness.tone==='ng'?'ng':'ok';
+      if(dx>0.13||dy>0.16){level='warn';message='顔を枠の中央に合わせてください。';score+=8;} else {score+=22;}
+      if(ratio<0.22){level='warn';message='少し近づいてください。';rejects.push('FACE_TOO_SMALL');score+=6;}
+      else if(ratio<=0.44){score+=22;}
+      else if(ratio>0.56){level='warn';message='少し離れてください。';score+=10;}
+      else {score+=10;}
+      if(brightness.tone==='ng'){level='ng';message='明るい場所で撮影してください。';rejects.push('TOO_DARK');}
+      else if(brightness.tone==='warn'&&level==='ok'){level='warn';message='もう少し明るい場所だと撮りやすいです。';}
+      return {level,message,score:Math.min(100,score),rejectCandidates:[...new Set(rejects)]};
     }
-
     async function assessFrame(){
-      if(!state.camera.stream || state.employeeCaptureBlob || els.video.readyState < 2) return;
-      const canvas = els.analysisCanvas;
-      const ctx = canvas.getContext('2d', { willReadFrequently:true });
-      const vw = els.video.videoWidth || 720, vh = els.video.videoHeight || 960;
-      canvas.width = 360; canvas.height = Math.round((vh/vw) * 360);
-      ctx.drawImage(els.video, 0, 0, canvas.width, canvas.height);
-      const brightness = assessBrightness(ctx, canvas.width, canvas.height);
+      if(!state.camera.stream||!state.camera.overlayOpen||state.employeeCaptureBlob||els.cameraVideo.readyState<2) return;
+      const canvas=els.analysisCanvas;
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      const vw=els.cameraVideo.videoWidth||720, vh=els.cameraVideo.videoHeight||960;
+      canvas.width=360; canvas.height=Math.round((vh/vw)*360);
+      ctx.drawImage(els.cameraVideo,0,0,canvas.width,canvas.height);
+      const brightness=assessBrightness(ctx,canvas.width,canvas.height);
       let result;
       if(state.camera.detector){
-        try{
-          const faces = await state.camera.detector.detect(canvas);
-          result = withFaceAssessment(faces, canvas.width, canvas.height, brightness);
-        }catch(e){
-          result = fallbackAssessment(brightness);
-        }
-      } else {
-        result = fallbackAssessment(brightness);
-      }
-      state.employeeQuality = result;
-      setCaptureHint(result.level === 'ok' ? 'ok' : result.level === 'ng' ? 'ng' : 'warn', result.message);
+        try{const faces=await state.camera.detector.detect(canvas); result=withFaceAssessment(faces,canvas.width,canvas.height,brightness);}
+        catch(e){result=fallbackAssessment(brightness);}
+      } else {result=fallbackAssessment(brightness);}
+      state.camera.lastAssessment=result;
+      state.employeeQuality=result;
+      setCaptureMessage(result.level==='ok'?'ok':result.level==='ng'?'ng':'warn',result.message);
     }
-
-    function startCameraAssessmentLoop(){
-      if(state.camera.timer) clearInterval(state.camera.timer);
-      state.camera.timer = setInterval(assessFrame, 900);
-    }
-
+    function startCameraAssessmentLoop(){if(state.camera.timer) clearInterval(state.camera.timer); state.camera.timer=setInterval(assessFrame,900);}
     async function capturePhoto(){
       if(!state.camera.stream) return;
-      const canvas = els.captureCanvas;
-      const ctx = canvas.getContext('2d');
-      const vw = els.video.videoWidth || 720, vh = els.video.videoHeight || 960;
-      canvas.width = vw; canvas.height = vh;
-      ctx.drawImage(els.video, 0, 0, vw, vh);
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .92));
+      const canvas=els.captureCanvas;
+      const ctx=canvas.getContext('2d');
+      const vw=els.cameraVideo.videoWidth||720, vh=els.cameraVideo.videoHeight||960;
+      canvas.width=vw; canvas.height=vh;
+      ctx.drawImage(els.cameraVideo,0,0,vw,vh);
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.92));
       if(!blob) return alert('写真生成に失敗しました。');
-      setCapture(blob, 'CAMERA');
+      const previewUrl=URL.createObjectURL(blob);
+      els.cameraCaptured.src=previewUrl;
+      els.cameraCaptured.classList.remove('hidden');
+      els.cameraVideo.classList.add('hidden');
+      els.cameraMaskLayer.classList.add('hidden');
+      els.overlayRetakeArea.classList.remove('hidden');
+      els.overlayCaptureBtn.disabled=true;
+      setCaptureMessage('ok','撮影できました。内容を確認して進んでください。','問題なければ「この写真で進む」を押してください。');
+      state.employeeCaptureBlob=blob;
+      state.employeeCaptureUrl=previewUrl;
+      state.employeeSourceType='CAMERA';
+      els.selectedPreviewArea.classList.add('hidden');
     }
-
-    function setCapture(blob, sourceType){
+    function resetCaptureForRetake(){
       if(state.employeeCaptureUrl?.startsWith('blob:')) URL.revokeObjectURL(state.employeeCaptureUrl);
-      state.employeeCaptureBlob = blob;
-      state.employeeCaptureUrl = URL.createObjectURL(blob);
-      state.employeeSourceType = sourceType;
-      els.previewImage.src = state.employeeCaptureUrl;
-      els.previewImage.classList.remove('hidden');
-      els.video.classList.add('hidden');
-      els.videoOverlay.classList.add('hidden');
-      els.captureBtn.disabled = true;
-      els.retakeBtn.classList.remove('hidden');
-      els.reviewImage.src = state.employeeCaptureUrl;
-      setCaptureHint('ok', '撮影できました。内容を確認してください。');
+      state.employeeCaptureBlob=null;
+      state.employeeCaptureUrl='';
+      state.employeeSourceType='';
+      state.employeeQuality={score:null,level:'warn',message:'未評価',rejectCandidates:[]};
+      els.cameraCaptured.classList.add('hidden');
+      els.cameraCaptured.src='';
+      els.cameraVideo.classList.remove('hidden');
+      els.cameraMaskLayer.classList.remove('hidden');
+      els.overlayRetakeArea.classList.add('hidden');
+      els.overlayCaptureBtn.disabled=!state.camera.stream;
+      setCaptureMessage('warn','顔と肩が枠に収まるように合わせてください。');
+    }
+    function useCapturedPhoto(){
+      if(!state.employeeCaptureBlob||!state.employeeCaptureUrl) return;
+      els.selectedPreviewImage.src=state.employeeCaptureUrl;
+      els.selectedPreviewArea.classList.remove('hidden');
+      closeCameraOverlay();
       showEmployeeStep(3);
     }
-
-    function resetCapture(resetHint=true){
-      if(state.employeeCaptureUrl?.startsWith('blob:')) URL.revokeObjectURL(state.employeeCaptureUrl);
-      state.employeeCaptureBlob = null;
-      state.employeeCaptureUrl = '';
-      state.employeeSourceType = '';
-      state.employeeQuality = { score:null, level:'warn', message:'未評価', rejectCandidates:[] };
-      els.previewImage.classList.add('hidden');
-      els.previewImage.src = '';
-      els.video.classList.remove('hidden');
-      els.videoOverlay.classList.remove('hidden');
-      els.captureBtn.disabled = !state.camera.stream;
-      els.retakeBtn.classList.add('hidden');
-      if(resetHint) setCaptureHint('warn', '顔を枠の中央に合わせてください。');
-    }
-
-    function resolveSession(){
-      const token = els.tokenInput.value.trim();
-      const found = findSessionByToken(token);
-      state.employeeSession = found;
-      updateEmployeeHeader();
-    }
-
+    function resolveSession(){const token=els.tokenInput.value.trim();state.employeeSession=findSessionByToken(token);updateEmployeeHeader();}
     function fillReview(){
-      const emp = currentEmployee();
-      if(!emp || !state.employeeCaptureUrl) return;
-      els.reviewCode.textContent = emp.employeeCode;
-      els.reviewName.textContent = emp.employeeName;
-      els.reviewDept.textContent = emp.departmentName;
-      els.reviewFileName.textContent = buildLogicalFileName(emp);
-      els.reviewSourceType.textContent = state.employeeSourceType === 'CAMERA' ? 'カメラ撮影' : '保存済み写真選択';
-      els.completeFileName.textContent = buildLogicalFileName(emp);
-      els.qualityChip.textContent = state.employeeQuality.level === 'ok' ? '問題なし' : state.employeeQuality.level === 'ng' ? '再確認推奨' : '要確認';
-      els.qualityChip.className = `quality-chip ${state.employeeQuality.level === 'ok' ? 'ok' : state.employeeQuality.level === 'ng' ? 'ng' : 'warn'}`;
-      els.qualityMessage.textContent = state.employeeQuality.message || '-';
+      const emp=currentEmployee();
+      if(!emp||!state.employeeCaptureUrl) return;
+      els.reviewImage.src=state.employeeCaptureUrl;
+      els.reviewCode.textContent=emp.employeeCode;
+      els.reviewName.textContent=emp.employeeName;
+      els.reviewDept.textContent=emp.departmentName;
+      els.reviewFileName.textContent=buildLogicalFileName(emp);
+      els.reviewSourceType.textContent=state.employeeSourceType==='CAMERA'?'カメラ撮影':'保存済み写真選択';
+      els.completeFileName.textContent=buildLogicalFileName(emp);
+      els.qualityChip.textContent=state.employeeQuality.level==='ok'?'問題なし':state.employeeQuality.level==='ng'?'再確認推奨':'要確認';
+      els.qualityChip.className=`quality-chip ${state.employeeQuality.level==='ok'?'ok':state.employeeQuality.level==='ng'?'ng':'warn'}`;
+      els.qualityMessage.textContent=state.employeeQuality.message||'-';
     }
-
     function fillRejectPanel(){
-      const req = currentRequest();
+      const req=currentRequest();
       if(!req) return;
-      const latest = getLatestSubmissionByRequest(req.requestId);
-      const latestReview = latest ? getLatestReview(latest.submissionId) : null;
-      const reasons = latestReview?.reviewResultCodes || [];
-      els.rejectReasonList.innerHTML = reasons.length
-        ? reasons.slice(0,3).map(code => {
-            const item = REJECT_REASON_MASTER.find(r => r.code === code);
-            return `<li>${escapeHtml(item?.employeeText || code)}</li>`;
-          }).join('')
-        : '<li>差し戻し理由はありません。</li>';
-      els.rejectCommentText.textContent = latestReview?.reviewComment || '-';
+      const latest=getLatestSubmissionByRequest(req.requestId);
+      const latestReview=latest?getLatestReview(latest.submissionId):null;
+      const reasons=latestReview?.reviewResultCodes||[];
+      els.rejectReasonList.innerHTML=reasons.length?reasons.slice(0,3).map(code=>{const item=REJECT_REASON_MASTER.find(r=>r.code===code);return `<li>${escapeHtml(item?.employeeText||code)}</li>`;}).join(''):'<li>差し戻し理由はありません。</li>';
+      els.rejectCommentText.textContent=latestReview?.reviewComment||'-';
     }
-
     function submitEmployee(){
-      const req = currentRequest();
-      const emp = currentEmployee();
-      if(!req || !emp || !state.employeeCaptureBlob) return;
-      const existing = getSubmissionsByRequest(req.requestId);
-      const nextNo = existing.length ? Math.max(...existing.map(s => s.submissionNo)) + 1 : 1;
-      const submissionId = uid('sub');
-      state.db.submissions.push({
-        submissionId, requestId:req.requestId, submissionNo:nextNo, sourceType:state.employeeSourceType.toLowerCase(),
-        submittedAt:nowIso(), qualityScore:state.employeeQuality.score, autoCheckResult:state.employeeQuality.level,
-        currentStatus:'submitted', finalizedAt:null, memo:''
-      });
-      const fileName = buildLogicalFileName(emp);
-      const pathBase = `/badge-photo/badge_2026/${emp.employeeCode}/${submissionId}/`;
-      state.db.photoAssets.push(
-        { assetId:uid('a'), submissionId, assetType:'original', fileName, storagePath:pathBase+'original.jpg', previewDataUrl:state.employeeCaptureUrl },
-        { assetId:uid('a'), submissionId, assetType:'normalized', fileName, storagePath:pathBase+'normalized.jpg', previewDataUrl:state.employeeCaptureUrl },
-        { assetId:uid('a'), submissionId, assetType:'thumbnail', fileName, storagePath:pathBase+'thumbnail.jpg', previewDataUrl:state.employeeCaptureUrl },
-      );
-      req.requestStatus = 'submitted';
-      req.updatedAt = nowIso();
-      state.db.auditLogs.unshift({ auditLogId:uid('aud'), actorType:'employee', actorId:emp.employeeCode, resourceType:'submission', resourceId:submissionId, action: nextNo > 1 ? 'EMPLOYEE_RESUBMITTED' : 'EMPLOYEE_SUBMITTED', createdAt:nowIso() });
+      const req=currentRequest(), emp=currentEmployee();
+      if(!req||!emp||!state.employeeCaptureBlob) return;
+      const existing=getSubmissionsByRequest(req.requestId);
+      const nextNo=existing.length?Math.max(...existing.map(s=>s.submissionNo))+1:1;
+      const submissionId=uid('sub');
+      state.db.submissions.push({submissionId,requestId:req.requestId,submissionNo:nextNo,sourceType:state.employeeSourceType.toLowerCase(),submittedAt:nowIso(),qualityScore:state.employeeQuality.score,autoCheckResult:state.employeeQuality.level,currentStatus:'submitted',finalizedAt:null,memo:''});
+      const fileName=buildLogicalFileName(emp);
+      const pathBase=`/badge-photo/badge_2026/${emp.employeeCode}/${submissionId}/`;
+      state.db.photoAssets.push({assetId:uid('a'),submissionId,assetType:'original',fileName,storagePath:pathBase+'original.jpg',previewDataUrl:state.employeeCaptureUrl},{assetId:uid('a'),submissionId,assetType:'normalized',fileName,storagePath:pathBase+'normalized.jpg',previewDataUrl:state.employeeCaptureUrl},{assetId:uid('a'),submissionId,assetType:'thumbnail',fileName,storagePath:pathBase+'thumbnail.jpg',previewDataUrl:state.employeeCaptureUrl});
+      req.requestStatus='submitted';
+      req.updatedAt=nowIso();
+      state.db.auditLogs.unshift({auditLogId:uid('aud'),actorType:'employee',actorId:emp.employeeCode,resourceType:'submission',resourceId:submissionId,action:nextNo>1?'EMPLOYEE_RESUBMITTED':'EMPLOYEE_SUBMITTED',createdAt:nowIso()});
       saveDb();
       updateEmployeeHeader();
       refreshAdminViews();
       showEmployeeStep(4);
     }
-
-    function renderRejectReasonChecks(){
-      els.rejectReasonChecks.innerHTML = REJECT_REASON_MASTER.map(item => `
-        <label style="display:flex;gap:8px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:14px;background:#fff">
-          <input type="checkbox" value="${item.code}" />
-          <span><strong style="display:block">${escapeHtml(item.label)}</strong><span class="helper">${escapeHtml(item.employeeText)}</span></span>
-        </label>
-      `).join('');
-    }
-
-    function userCan(permission){
-      const map = {
-        review:['reviewer','admin'],
-        export:['operator','admin'],
-        read:['viewer','reviewer','operator','admin']
-      };
-      return (map[permission] || []).includes(state.currentRole);
-    }
-
-    function setAdminTab(name){
-      state.currentAdminTab = name;
-      els.adminSubnavBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === name));
-      els.adminTabs.forEach(tab => tab.classList.toggle('hidden', tab.dataset.adminScreen !== name));
-      if(name === 'detail') renderDetail();
-      if(name === 'notifications') renderNotifications();
-      if(name === 'audit') renderAudit();
-      if(name === 'exports') renderExports();
-    }
-
-    function getRequestRowStatus(req){
-      if(req.requestStatus === 'approved') return 'approved';
-      if(req.requestStatus === 'rejected') return 'rejected';
-      if(req.requestStatus === 'expired') return 'expired';
-      if(req.requestStatus === 'submitted') return 'submitted';
-      return 'not_started';
-    }
-
+    function renderRejectReasonChecks(){els.rejectReasonChecks.innerHTML=REJECT_REASON_MASTER.map(item=>`<label style="display:flex;gap:8px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:14px;background:#fff"><input type="checkbox" value="${item.code}" /><span><strong style="display:block">${escapeHtml(item.label)}</strong><span class="helper">${escapeHtml(item.employeeText)}</span></span></label>`).join('');}
+    function userCan(permission){const map={review:['reviewer','admin'],export:['operator','admin'],read:['viewer','reviewer','operator','admin']};return (map[permission]||[]).includes(state.currentRole);}
+    function setAdminTab(name){state.currentAdminTab=name;els.adminSubnavBtns.forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===name));els.adminTabs.forEach(tab=>tab.classList.toggle('hidden',tab.dataset.adminScreen!==name));if(name==='detail')renderDetail();if(name==='notifications')renderNotifications();if(name==='audit')renderAudit();if(name==='exports')renderExports();}
+    function getRequestRowStatus(req){if(req.requestStatus==='approved')return 'approved';if(req.requestStatus==='rejected')return 'rejected';if(req.requestStatus==='expired')return 'expired';if(req.requestStatus==='submitted')return 'submitted';return 'not_started';}
     function populateDeptFilters(){
-      const depts = [...new Set(state.db.employees.map(e => e.departmentName))].filter(Boolean);
-      [els.filterDept, els.exportDept].forEach(select => {
-        const current = select.value;
-        select.innerHTML = `<option value="">${select === els.exportDept ? '全社' : '所属すべて'}</option>` + depts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
-        if([...select.options].some(o => o.value === current)) select.value = current;
+      const depts=[...new Set(state.db.employees.map(e=>e.departmentName))].filter(Boolean);
+      [els.filterDept,els.exportDept].forEach(select=>{
+        const current=select.value;
+        select.innerHTML=`<option value="">${select===els.exportDept?'全社':'所属すべて'}</option>`+depts.map(d=>`<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+        if([...select.options].some(o=>o.value===current)) select.value=current;
       });
     }
-
     function renderDashboard(){
-      const total = state.db.submissionRequests.length;
-      const counts = { not_started:0, submitted:0, approved:0, rejected:0, expired:0 };
-      state.db.submissionRequests.forEach(r => counts[r.requestStatus]++);
-      els.metricTotal.textContent = total;
-      els.metricNotStarted.textContent = counts.not_started;
-      els.metricSubmitted.textContent = counts.submitted;
-      els.metricApproved.textContent = counts.approved;
-      els.metricRejected.textContent = counts.rejected;
-      els.metricExpired.textContent = counts.expired;
-
-      const recent = [...state.db.reviews].filter(r => r.reviewAction === 'reject').sort((a,b)=>new Date(b.reviewedAt)-new Date(a.reviewedAt)).slice(0,5);
-      els.recentRejectedBox.innerHTML = recent.length ? recent.map(r => {
-        const sub = state.db.submissions.find(s => s.submissionId === r.submissionId);
-        const req = sub && getRequestById(sub.requestId);
-        const emp = req && getEmployeeById(req.employeeId);
-        return `<div class="log-item"><strong>${escapeHtml(emp?.employeeName || '-')}</strong> / ${escapeHtml(emp?.employeeCode || '-')}<br>理由: ${escapeHtml((r.reviewResultCodes || []).join(', '))}<br>日時: ${fmtDate(r.reviewedAt)}</div>`;
-      }).join('') : '<div class="empty">差し戻し履歴はありません。</div>';
+      const total=state.db.submissionRequests.length;
+      const counts={not_started:0,submitted:0,approved:0,rejected:0,expired:0};
+      state.db.submissionRequests.forEach(r=>counts[r.requestStatus]++);
+      els.metricTotal.textContent=total;
+      els.metricNotStarted.textContent=counts.not_started;
+      els.metricSubmitted.textContent=counts.submitted;
+      els.metricApproved.textContent=counts.approved;
+      els.metricRejected.textContent=counts.rejected;
+      els.metricExpired.textContent=counts.expired;
+      const recent=[...state.db.reviews].filter(r=>r.reviewAction==='reject').sort((a,b)=>new Date(b.reviewedAt)-new Date(a.reviewedAt)).slice(0,5);
+      els.recentRejectedBox.innerHTML=recent.length?recent.map(r=>{const sub=state.db.submissions.find(s=>s.submissionId===r.submissionId);const req=sub&&getRequestById(sub.requestId);const emp=req&&getEmployeeById(req.employeeId);return `<div class="log-item"><strong>${escapeHtml(emp?.employeeName||'-')}</strong> / ${escapeHtml(emp?.employeeCode||'-')}<br>理由: ${escapeHtml((r.reviewResultCodes||[]).join(', '))}<br>日時: ${fmtDate(r.reviewedAt)}</div>`;}).join(''):'<div class="empty">差し戻し履歴はありません。</div>';
     }
-
     function renderList(){
-      const kw = els.filterKeyword.value.trim().toLowerCase();
-      const status = els.filterStatus.value;
-      const dept = els.filterDept.value;
-      const overdue = els.filterOverdue.value;
-      const rows = state.db.submissionRequests.filter(req => {
-        const emp = getEmployeeById(req.employeeId);
-        const rowStatus = getRequestRowStatus(req);
-        if(status && rowStatus !== status) return false;
-        if(dept && emp?.departmentName !== dept) return false;
-        if(overdue === 'yes' && req.requestStatus !== 'expired') return false;
-        if(kw){
-          const hay = `${emp?.employeeCode || ''} ${emp?.employeeName || ''} ${emp?.departmentName || ''}`.toLowerCase();
-          if(!hay.includes(kw)) return false;
-        }
+      const kw=els.filterKeyword.value.trim().toLowerCase(), status=els.filterStatus.value, dept=els.filterDept.value, overdue=els.filterOverdue.value;
+      const rows=state.db.submissionRequests.filter(req=>{
+        const emp=getEmployeeById(req.employeeId), rowStatus=getRequestRowStatus(req);
+        if(status&&rowStatus!==status) return false;
+        if(dept&&emp?.departmentName!==dept) return false;
+        if(overdue==='yes'&&req.requestStatus!=='expired') return false;
+        if(kw){const hay=`${emp?.employeeCode||''} ${emp?.employeeName||''} ${emp?.departmentName||''}`.toLowerCase(); if(!hay.includes(kw)) return false;}
         return true;
       });
-
-      els.submissionTableBody.innerHTML = rows.length ? rows.map(req => {
-        const emp = getEmployeeById(req.employeeId);
-        const sub = getLatestSubmissionByRequest(req.requestId);
-        const thumb = sub ? getAssetsBySubmission(sub.submissionId).find(a => a.assetType === 'thumbnail') : null;
-        const rowStatus = getRequestRowStatus(req);
-        return `<tr>
-          <td>${thumb ? `<img class="thumb" src="${thumb.previewDataUrl}" alt="">` : '<div class="thumb"></div>'}</td>
-          <td>${escapeHtml(emp?.employeeCode || '-')}</td>
-          <td>${escapeHtml(emp?.employeeName || '-')}</td>
-          <td>${escapeHtml(emp?.departmentName || '-')}</td>
-          <td><span class="pill ${rowStatus}">${employeeStatusLabel(rowStatus)}</span></td>
-          <td>${fmtDate(sub?.submittedAt)}</td>
-          <td><button class="btn ghost open-detail-btn" data-request-id="${req.requestId}">詳細</button></td>
-        </tr>`;
-      }).join('') : '<tr><td colspan="7"><div class="empty">該当データはありません。</div></td></tr>';
-
-      document.querySelectorAll('.open-detail-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const requestId = btn.dataset.requestId;
-          const sub = getLatestSubmissionByRequest(requestId);
-          state.selectedSubmissionId = sub?.submissionId || null;
-          setAdminTab('detail');
-        });
-      });
+      els.submissionTableBody.innerHTML=rows.length?rows.map(req=>{const emp=getEmployeeById(req.employeeId), sub=getLatestSubmissionByRequest(req.requestId), thumb=sub?getAssetsBySubmission(sub.submissionId).find(a=>a.assetType==='thumbnail'):null, rowStatus=getRequestRowStatus(req);return `<tr><td>${thumb?`<img class="thumb" src="${thumb.previewDataUrl}" alt="">`:'<div class="thumb"></div>'}</td><td>${escapeHtml(emp?.employeeCode||'-')}</td><td>${escapeHtml(emp?.employeeName||'-')}</td><td>${escapeHtml(emp?.departmentName||'-')}</td><td><span class="pill ${rowStatus}">${employeeStatusLabel(rowStatus)}</span></td><td>${fmtDate(sub?.submittedAt)}</td><td><button class="btn ghost open-detail-btn" data-request-id="${req.requestId}">詳細</button></td></tr>`;}).join(''):'<tr><td colspan="7"><div class="empty">該当データはありません。</div></td></tr>';
+      document.querySelectorAll('.open-detail-btn').forEach(btn=>btn.addEventListener('click',()=>{const requestId=btn.dataset.requestId;const sub=getLatestSubmissionByRequest(requestId);state.selectedSubmissionId=sub?.submissionId||null;setAdminTab('detail');}));
     }
-
     function renderDetail(){
-      const subId = state.selectedSubmissionId;
-      if(!subId){
-        els.detailEmpty.classList.remove('hidden');
-        els.detailCard.classList.add('hidden');
-        return;
-      }
-      const sub = state.db.submissions.find(s => s.submissionId === subId);
-      if(!sub){
-        els.detailEmpty.classList.remove('hidden');
-        els.detailCard.classList.add('hidden');
-        return;
-      }
-      const req = getRequestById(sub.requestId);
-      const emp = req && getEmployeeById(req.employeeId);
-      const assets = getAssetsBySubmission(subId);
-      const original = assets.find(a => a.assetType === 'original');
-      const normalized = assets.find(a => a.assetType === 'normalized') || original;
-      const latestReview = getLatestReview(subId);
-
+      const subId=state.selectedSubmissionId;
+      if(!subId){els.detailEmpty.classList.remove('hidden');els.detailCard.classList.add('hidden');return;}
+      const sub=state.db.submissions.find(s=>s.submissionId===subId);
+      if(!sub){els.detailEmpty.classList.remove('hidden');els.detailCard.classList.add('hidden');return;}
+      const req=getRequestById(sub.requestId), emp=req&&getEmployeeById(req.employeeId), assets=getAssetsBySubmission(subId), original=assets.find(a=>a.assetType==='original'), normalized=assets.find(a=>a.assetType==='normalized')||original, latestReview=getLatestReview(subId);
       els.detailEmpty.classList.add('hidden');
       els.detailCard.classList.remove('hidden');
-      els.detailTitle.textContent = `${emp?.employeeName || '-'} / ${emp?.employeeCode || '-'} / ${emp?.departmentName || '-'}`;
-      els.detailOriginalImage.src = original?.previewDataUrl || '';
-      els.detailNormalizedImage.src = normalized?.previewDataUrl || '';
-      els.detailCode.textContent = emp?.employeeCode || '-';
-      els.detailName.textContent = emp?.employeeName || '-';
-      els.detailDept.textContent = emp?.departmentName || '-';
-      els.detailStatus.textContent = employeeStatusLabel(getRequestRowStatus(req));
-      els.detailSubmittedAt.textContent = fmtDate(sub.submittedAt);
-      els.detailScore.textContent = sub.qualityScore ?? '-';
-      els.detailMemo.value = sub.memo || '';
-      els.detailRejectHistory.innerHTML = latestReview?.reviewAction === 'reject'
-        ? `${(latestReview.reviewResultCodes || []).map(code => {
-            const item = REJECT_REASON_MASTER.find(r => r.code === code);
-            return `<div>・${escapeHtml(item?.label || code)}</div>`;
-          }).join('')}<div style="margin-top:8px">補足: ${escapeHtml(latestReview.reviewComment || '-')}</div>`
-        : '差し戻し履歴はありません。';
-
-      els.approveBtn.disabled = !userCan('review') || sub.currentStatus === 'approved';
-      els.rejectBtn.disabled = !userCan('review') || sub.currentStatus === 'approved';
+      els.detailTitle.textContent=`${emp?.employeeName||'-'} / ${emp?.employeeCode||'-'} / ${emp?.departmentName||'-'}`;
+      els.detailOriginalImage.src=original?.previewDataUrl||'';
+      els.detailNormalizedImage.src=normalized?.previewDataUrl||'';
+      els.detailCode.textContent=emp?.employeeCode||'-';
+      els.detailName.textContent=emp?.employeeName||'-';
+      els.detailDept.textContent=emp?.departmentName||'-';
+      els.detailStatus.textContent=employeeStatusLabel(getRequestRowStatus(req));
+      els.detailSubmittedAt.textContent=fmtDate(sub.submittedAt);
+      els.detailScore.textContent=sub.qualityScore??'-';
+      els.detailMemo.value=sub.memo||'';
+      els.detailRejectHistory.innerHTML=latestReview?.reviewAction==='reject'?`${(latestReview.reviewResultCodes||[]).map(code=>{const item=REJECT_REASON_MASTER.find(r=>r.code===code);return `<div>・${escapeHtml(item?.label||code)}</div>`;}).join('')}<div style="margin-top:8px">補足: ${escapeHtml(latestReview.reviewComment||'-')}</div>`:'差し戻し履歴はありません。';
+      els.approveBtn.disabled=!userCan('review')||sub.currentStatus==='approved';
+      els.rejectBtn.disabled=!userCan('review')||sub.currentStatus==='approved';
       renderRejectReasonChecks();
     }
-
     function approveSelected(){
       if(!userCan('review')) return alert('承認権限がありません。');
-      const sub = state.db.submissions.find(s => s.submissionId === state.selectedSubmissionId);
+      const sub=state.db.submissions.find(s=>s.submissionId===state.selectedSubmissionId);
       if(!sub) return;
       if(!['submitted','under_review'].includes(sub.currentStatus)) return alert('承認可能な状態ではありません。');
-      const req = getRequestById(sub.requestId);
-      sub.currentStatus = 'approved';
-      sub.finalizedAt = nowIso();
-      req.requestStatus = 'approved';
-      req.updatedAt = nowIso();
-      state.db.reviews.push({
-        reviewId:uid('rev'), submissionId:sub.submissionId, reviewAction:'approve',
-        reviewResultCodes:['APPROVED'], reviewComment:els.approveComment.value.trim(),
-        reviewedBy:state.currentRole, reviewedAt:nowIso()
-      });
-      state.db.auditLogs.unshift({ auditLogId:uid('aud'), actorType:'admin', actorId:state.currentRole, resourceType:'submission', resourceId:sub.submissionId, action:'ADMIN_APPROVED', createdAt:nowIso() });
-      saveDb();
-      els.approveComment.value = '';
-      refreshAdminViews();
-      alert('承認しました。');
+      const req=getRequestById(sub.requestId);
+      sub.currentStatus='approved'; sub.finalizedAt=nowIso(); req.requestStatus='approved'; req.updatedAt=nowIso();
+      state.db.reviews.push({reviewId:uid('rev'),submissionId:sub.submissionId,reviewAction:'approve',reviewResultCodes:['APPROVED'],reviewComment:els.approveComment.value.trim(),reviewedBy:state.currentRole,reviewedAt:nowIso()});
+      state.db.auditLogs.unshift({auditLogId:uid('aud'),actorType:'admin',actorId:state.currentRole,resourceType:'submission',resourceId:sub.submissionId,action:'ADMIN_APPROVED',createdAt:nowIso()});
+      saveDb(); els.approveComment.value=''; refreshAdminViews(); alert('承認しました。');
     }
-
     function rejectSelected(){
       if(!userCan('review')) return alert('差し戻し権限がありません。');
-      const sub = state.db.submissions.find(s => s.submissionId === state.selectedSubmissionId);
+      const sub=state.db.submissions.find(s=>s.submissionId===state.selectedSubmissionId);
       if(!sub) return;
       if(!['submitted','under_review'].includes(sub.currentStatus)) return alert('差し戻し可能な状態ではありません。');
-      const reasonCodes = Array.from(els.rejectReasonChecks.querySelectorAll('input:checked')).map(i => i.value);
-      const comment = els.rejectComment.value.trim();
+      const reasonCodes=[...els.rejectReasonChecks.querySelectorAll('input:checked')].map(i=>i.value), comment=els.rejectComment.value.trim();
       if(!reasonCodes.length) return alert('差し戻し理由を選択してください。');
-      if(reasonCodes.includes('OTHER') && !comment) return alert('OTHER を含む場合は補足コメントが必須です。');
-      const req = getRequestById(sub.requestId);
-      const emp = getEmployeeById(req.employeeId);
-      sub.currentStatus = 'rejected';
-      sub.finalizedAt = nowIso();
-      req.requestStatus = 'rejected';
-      req.updatedAt = nowIso();
-      state.db.reviews.push({
-        reviewId:uid('rev'), submissionId:sub.submissionId, reviewAction:'reject',
-        reviewResultCodes:reasonCodes, reviewComment:comment, reviewedBy:state.currentRole, reviewedAt:nowIso()
-      });
-      if(els.notifyEmployeeCheck.checked){
-        state.db.notifications.unshift({ notificationId:uid('noti'), employeeId:emp.employeeId, requestId:req.requestId, templateCode:'REQ_REJECTED', channel:'email', sentAt:nowIso(), status:'sent' });
-      }
-      state.db.auditLogs.unshift({ auditLogId:uid('aud'), actorType:'admin', actorId:state.currentRole, resourceType:'submission', resourceId:sub.submissionId, action:'ADMIN_REJECTED', createdAt:nowIso() });
-      saveDb();
-      els.rejectComment.value = '';
-      refreshAdminViews();
-      alert('差し戻しました。');
+      if(reasonCodes.includes('OTHER')&&!comment) return alert('OTHER を含む場合は補足コメントが必須です。');
+      const req=getRequestById(sub.requestId), emp=getEmployeeById(req.employeeId);
+      sub.currentStatus='rejected'; sub.finalizedAt=nowIso(); req.requestStatus='rejected'; req.updatedAt=nowIso();
+      state.db.reviews.push({reviewId:uid('rev'),submissionId:sub.submissionId,reviewAction:'reject',reviewResultCodes:reasonCodes,reviewComment:comment,reviewedBy:state.currentRole,reviewedAt:nowIso()});
+      if(els.notifyEmployeeCheck.checked){state.db.notifications.unshift({notificationId:uid('noti'),employeeId:emp.employeeId,requestId:req.requestId,templateCode:'REQ_REJECTED',channel:'email',sentAt:nowIso(),status:'sent'});}
+      state.db.auditLogs.unshift({auditLogId:uid('aud'),actorType:'admin',actorId:state.currentRole,resourceType:'submission',resourceId:sub.submissionId,action:'ADMIN_REJECTED',createdAt:nowIso()});
+      saveDb(); els.rejectComment.value=''; refreshAdminViews(); alert('差し戻しました。');
     }
-
     function saveMemo(){
-      const sub = state.db.submissions.find(s => s.submissionId === state.selectedSubmissionId);
+      const sub=state.db.submissions.find(s=>s.submissionId===state.selectedSubmissionId);
       if(!sub) return;
-      sub.memo = els.detailMemo.value.trim();
-      state.db.auditLogs.unshift({ auditLogId:uid('aud'), actorType:'admin', actorId:state.currentRole, resourceType:'submission', resourceId:sub.submissionId, action:'MEMO_UPDATED', createdAt:nowIso() });
-      saveDb();
-      refreshAdminViews();
-      alert('メモを保存しました。');
+      sub.memo=els.detailMemo.value.trim();
+      state.db.auditLogs.unshift({auditLogId:uid('aud'),actorType:'admin',actorId:state.currentRole,resourceType:'submission',resourceId:sub.submissionId,action:'MEMO_UPDATED',createdAt:nowIso()});
+      saveDb(); refreshAdminViews(); alert('メモを保存しました。');
     }
-
     function collectApprovedRowsForExport(){
-      const dept = els.exportDept.value;
-      const from = els.exportFrom.value;
-      const to = els.exportTo.value;
-      return state.db.submissionRequests.flatMap(req => {
-        if(req.requestStatus !== 'approved') return [];
-        const emp = getEmployeeById(req.employeeId);
-        if(dept && emp?.departmentName !== dept) return [];
-        const sub = getLatestSubmissionByRequest(req.requestId);
+      const dept=els.exportDept.value, from=els.exportFrom.value, to=els.exportTo.value;
+      return state.db.submissionRequests.flatMap(req=>{
+        if(req.requestStatus!=='approved') return [];
+        const emp=getEmployeeById(req.employeeId);
+        if(dept&&emp?.departmentName!==dept) return [];
+        const sub=getLatestSubmissionByRequest(req.requestId);
         if(!sub) return [];
-        const ymd = toYmd(sub.submittedAt);
-        if(from && ymd < from) return [];
-        if(to && ymd > to) return [];
-        const asset = getAssetsBySubmission(sub.submissionId).find(a => a.assetType === 'normalized') || getAssetsBySubmission(sub.submissionId).find(a => a.assetType === 'original');
-        return [{ emp, sub, asset }];
+        const ymd=toYmd(sub.submittedAt);
+        if(from&&ymd<from) return [];
+        if(to&&ymd>to) return [];
+        const asset=getAssetsBySubmission(sub.submissionId).find(a=>a.assetType==='normalized')||getAssetsBySubmission(sub.submissionId).find(a=>a.assetType==='original');
+        return [{emp,sub,asset}];
       });
     }
-
     function executeExport(format){
       if(!userCan('export')) return alert('出力権限がありません。');
-      const rows = collectApprovedRowsForExport();
-      const exportId = uid('exp');
-      state.db.exports.unshift({ exportId, exportFormat:format, executedBy:state.currentRole, executedAt:nowIso(), itemCount:rows.length });
-      rows.forEach(r => state.db.exportItems.push({ exportItemId:uid('ei'), exportId, submissionId:r.sub.submissionId, assetId:r.asset?.assetId || '' }));
-      state.db.notifications.unshift({ notificationId:uid('noti'), employeeId:'admin', requestId:null, templateCode:'ADM_EXPORT_READY', channel:'email', sentAt:nowIso(), status:'sent' });
-      state.db.auditLogs.unshift({ auditLogId:uid('aud'), actorType:'admin', actorId:state.currentRole, resourceType:'export', resourceId:exportId, action:'EXPORT_EXECUTED', createdAt:nowIso() });
+      const rows=collectApprovedRowsForExport();
+      const exportId=uid('exp');
+      state.db.exports.unshift({exportId,exportFormat:format,executedBy:state.currentRole,executedAt:nowIso(),itemCount:rows.length});
+      rows.forEach(r=>state.db.exportItems.push({exportItemId:uid('ei'),exportId,submissionId:r.sub.submissionId,assetId:r.asset?.assetId||''}));
+      state.db.notifications.unshift({notificationId:uid('noti'),employeeId:'admin',requestId:null,templateCode:'ADM_EXPORT_READY',channel:'email',sentAt:nowIso(),status:'sent'});
+      state.db.auditLogs.unshift({auditLogId:uid('aud'),actorType:'admin',actorId:state.currentRole,resourceType:'export',resourceId:exportId,action:'EXPORT_EXECUTED',createdAt:nowIso()});
       saveDb();
-
-      if(format === 'csv'){
-        const header = ['employee_code','employee_name','department','submission_id','file_name','submitted_at','status'];
-        const csvRows = [header, ...rows.map(r => [r.emp.employeeCode, r.emp.employeeName, r.emp.departmentName, r.sub.submissionId, buildLogicalFileName(r.emp), r.sub.submittedAt, r.sub.currentStatus])];
-        const csv = csvRows.map(row => row.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\r\n');
-        const blob = new Blob(["\uFEFF"+csv], { type:'text/csv;charset=utf-8;' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${exportId}.csv`; a.click(); URL.revokeObjectURL(a.href);
-      } else {
-        const manifest = rows.map(r => ({ employeeCode:r.emp.employeeCode, employeeName:r.emp.employeeName, fileName:buildLogicalFileName(r.emp), submissionId:r.sub.submissionId }));
-        const blob = new Blob([JSON.stringify({ exportId, items:manifest }, null, 2)], { type:'application/json' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${exportId}.zip.json`; a.click(); URL.revokeObjectURL(a.href);
+      if(format==='csv'){
+        const header=['employee_code','employee_name','department','submission_id','file_name','submitted_at','status'];
+        const csvRows=[header,...rows.map(r=>[r.emp.employeeCode,r.emp.employeeName,r.emp.departmentName,r.sub.submissionId,buildLogicalFileName(r.emp),r.sub.submittedAt,r.sub.currentStatus])];
+        const csv=csvRows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+        const blob=new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${exportId}.csv`; a.click(); URL.revokeObjectURL(a.href);
+      }else{
+        const manifest=rows.map(r=>({employeeCode:r.emp.employeeCode,employeeName:r.emp.employeeName,fileName:buildLogicalFileName(r.emp),submissionId:r.sub.submissionId}));
+        const blob=new Blob([JSON.stringify({exportId,items:manifest},null,2)],{type:'application/json'});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${exportId}.zip.json`; a.click(); URL.revokeObjectURL(a.href);
       }
       refreshAdminViews();
     }
-
-    function renderExports(){
-      const logs = state.db.exports.slice(0,20);
-      els.exportLogBox.innerHTML = logs.length ? logs.map(log => `
-        <div class="log-item"><strong>${escapeHtml(log.exportId)}</strong><br>形式: ${escapeHtml(log.exportFormat)} / 件数: ${log.itemCount}<br>実行者: ${escapeHtml(log.executedBy)} / 日時: ${fmtDate(log.executedAt)}</div>
-      `).join('') : '<div class="empty">出力履歴はありません。</div>';
-    }
-
-    function renderNotifications(){
-      const logs = state.db.notifications.slice(0,50);
-      els.notificationLogBox.innerHTML = logs.length ? logs.map(log => {
-        const emp = state.db.employees.find(e => e.employeeId === log.employeeId);
-        return `<div class="log-item"><strong>${escapeHtml(log.templateCode)}</strong><br>対象: ${escapeHtml(emp?.employeeName || log.employeeId)} / 送信手段: ${escapeHtml(log.channel)}<br>状態: ${escapeHtml(log.status)} / 日時: ${fmtDate(log.sentAt)}</div>`;
-      }).join('') : '<div class="empty">通知履歴はありません。</div>';
-    }
-
-    function renderAudit(){
-      const logs = state.db.auditLogs.slice(0,60);
-      els.auditLogBox.innerHTML = logs.length ? logs.map(log => `
-        <div class="log-item"><strong>${escapeHtml(log.action)}</strong><br>actor: ${escapeHtml(log.actorType)} / ${escapeHtml(log.actorId)}<br>resource: ${escapeHtml(log.resourceType)} / ${escapeHtml(log.resourceId)}<br>日時: ${fmtDate(log.createdAt)}</div>
-      `).join('') : '<div class="empty">監査ログはありません。</div>';
-    }
-
-    function refreshAdminViews(){
-      populateDeptFilters();
-      renderDashboard();
-      renderList();
-      renderDetail();
-      renderNotifications();
-      renderAudit();
-      renderExports();
-    }
-
+    function renderExports(){const logs=state.db.exports.slice(0,20);els.exportLogBox.innerHTML=logs.length?logs.map(log=>`<div class="log-item"><strong>${escapeHtml(log.exportId)}</strong><br>形式: ${escapeHtml(log.exportFormat)} / 件数: ${log.itemCount}<br>実行者: ${escapeHtml(log.executedBy)} / 日時: ${fmtDate(log.executedAt)}</div>`).join(''):'<div class="empty">出力履歴はありません。</div>';}
+    function renderNotifications(){const logs=state.db.notifications.slice(0,50);els.notificationLogBox.innerHTML=logs.length?logs.map(log=>{const emp=state.db.employees.find(e=>e.employeeId===log.employeeId);return `<div class="log-item"><strong>${escapeHtml(log.templateCode)}</strong><br>対象: ${escapeHtml(emp?.employeeName||log.employeeId)} / 送信手段: ${escapeHtml(log.channel)}<br>状態: ${escapeHtml(log.status)} / 日時: ${fmtDate(log.sentAt)}</div>`;}).join(''):'<div class="empty">通知履歴はありません。</div>';}
+    function renderAudit(){const logs=state.db.auditLogs.slice(0,60);els.auditLogBox.innerHTML=logs.length?logs.map(log=>`<div class="log-item"><strong>${escapeHtml(log.action)}</strong><br>actor: ${escapeHtml(log.actorType)} / ${escapeHtml(log.actorId)}<br>resource: ${escapeHtml(log.resourceType)} / ${escapeHtml(log.resourceId)}<br>日時: ${fmtDate(log.createdAt)}</div>`).join(''):'<div class="empty">監査ログはありません。</div>';}
+    function refreshAdminViews(){populateDeptFilters();renderDashboard();renderList();renderDetail();renderNotifications();renderAudit();renderExports();}
     function employeeNext(){
-      if(state.employeeStep === 1){
+      if(state.employeeStep===1){
         resolveSession();
-        const req = currentRequest();
+        const req=currentRequest();
         if(!req) return alert('有効な簡易トークンを入力してください。例: demo-000123');
-        if(req.requestStatus === 'expired') return alert('この提出URLは期限超過です。');
-        if(req.requestStatus === 'rejected') return showEmployeeStep(5);
-        showEmployeeStep(2);
-        return;
+        if(req.requestStatus==='expired') return alert('この提出URLは期限超過です。');
+        if(req.requestStatus==='rejected') return showEmployeeStep(5);
+        showEmployeeStep(2); return;
       }
-      if(state.employeeStep === 3){
-        submitEmployee();
+      if(state.employeeStep===2){
+        if(!state.employeeCaptureBlob||!state.employeeCaptureUrl) return alert('先にカメラ撮影または写真選択をしてください。');
+        showEmployeeStep(3); return;
       }
+      if(state.employeeStep===3) submitEmployee();
     }
-
     function employeeBack(){
-      if(state.employeeStep === 1) return;
-      if(state.employeeStep === 2){ showEmployeeStep(1); return; }
-      if(state.employeeStep === 3){ showEmployeeStep(2); return; }
-      if(state.employeeStep === 5){ showEmployeeStep(1); return; }
+      if(state.employeeStep===1) return;
+      if(state.employeeStep===2){showEmployeeStep(1);return;}
+      if(state.employeeStep===3){showEmployeeStep(2);return;}
+      if(state.employeeStep===5){showEmployeeStep(1);return;}
     }
-
     function handleSelectedFile(file){
       if(!file) return;
       if(!['image/jpeg','image/png'].includes(file.type)) return alert('JPEG または PNG のみアップロードできます。');
-      if(file.size > 8*1024*1024) return alert('ファイルサイズ上限は 8MB です。');
-      state.employeeQuality = { score:70, level:'warn', message:'保存済み写真のため、提出前に内容をご確認ください。', rejectCandidates:[] };
-      setCapture(file, 'FILE');
+      if(file.size>8*1024*1024) return alert('ファイルサイズ上限は 8MB です。');
+      if(state.employeeCaptureUrl?.startsWith('blob:')) URL.revokeObjectURL(state.employeeCaptureUrl);
+      state.employeeCaptureBlob=file;
+      state.employeeCaptureUrl=URL.createObjectURL(file);
+      state.employeeSourceType='FILE';
+      state.employeeQuality={score:70,level:'warn',message:'保存済み写真のため、提出前に内容をご確認ください。',rejectCandidates:[]};
+      els.selectedPreviewImage.src=state.employeeCaptureUrl;
+      els.selectedPreviewArea.classList.remove('hidden');
+      showEmployeeStep(3);
     }
 
-    // events
-    els.switchEmployee.addEventListener('click', () => setMode('employee'));
-    els.switchAdmin.addEventListener('click', () => { setMode('admin'); refreshAdminViews(); });
-    els.backBtn.addEventListener('click', employeeBack);
-    els.nextBtn.addEventListener('click', employeeNext);
-    els.tokenInput.addEventListener('input', resolveSession);
-
-    els.startCameraBtn.addEventListener('click', () => startCamera(els.cameraSelect.value));
-    els.captureBtn.addEventListener('click', capturePhoto);
-    els.retakeBtn.addEventListener('click', () => resetCapture(false));
-    els.fileModeBtn.addEventListener('click', () => els.fileInput.click());
-    els.resubmitFileBtn.addEventListener('click', () => els.fileInput.click());
-    els.fileInput.addEventListener('change', e => handleSelectedFile(e.target.files?.[0]));
-    els.switchCameraBtn.addEventListener('click', async () => {
+    els.switchEmployee.addEventListener('click',()=>setMode('employee'));
+    els.switchAdmin.addEventListener('click',()=>{setMode('admin');refreshAdminViews();});
+    els.backBtn.addEventListener('click',employeeBack);
+    els.nextBtn.addEventListener('click',employeeNext);
+    els.tokenInput.addEventListener('input',resolveSession);
+    els.openCameraBtn.addEventListener('click',()=>openCameraOverlay());
+    els.openFileBtn.addEventListener('click',()=>els.fileInput.click());
+    els.resubmitCameraBtn.addEventListener('click',()=>{showEmployeeStep(2);openCameraOverlay();});
+    els.resubmitFileBtn.addEventListener('click',()=>els.fileInput.click());
+    els.fileInput.addEventListener('change',e=>handleSelectedFile(e.target.files?.[0]));
+    els.closeCameraOverlay.addEventListener('click',closeCameraOverlay);
+    els.cameraInfoBtn.addEventListener('click',()=>alert('顔は上側の目安、肩は下側の目安に合わせてください。頭頂から肩までが枠に収まると撮りやすいです。'));
+    els.overlayFileBtn.addEventListener('click',()=>{closeCameraOverlay();els.fileInput.click();});
+    els.overlayCaptureBtn.addEventListener('click',capturePhoto);
+    els.overlaySwitchCameraBtn.addEventListener('click',async()=>{
       if(!state.camera.devices.length) return;
-      const idx = state.camera.devices.findIndex(d => d.deviceId === state.camera.currentDeviceId);
-      const next = state.camera.devices[(idx + 1 + state.camera.devices.length) % state.camera.devices.length];
-      state.camera.facingMode = state.camera.facingMode === 'user' ? 'environment' : 'user';
-      await startCamera(next.deviceId);
+      const idx=state.camera.devices.findIndex(d=>d.deviceId===state.camera.currentDeviceId);
+      const next=state.camera.devices[(idx+1+state.camera.devices.length)%state.camera.devices.length];
+      state.camera.facingMode=state.camera.facingMode==='user'?'environment':'user';
+      await openCameraOverlay(next.deviceId);
     });
-    els.resubmitBtn.addEventListener('click', async () => {
-      showEmployeeStep(2);
-      await startCamera();
-    });
+    els.overlayRetakeBtn.addEventListener('click',resetCaptureForRetake);
+    els.overlayUsePhotoBtn.addEventListener('click',useCapturedPhoto);
 
-    els.adminRoleSelect.addEventListener('change', () => { state.currentRole = els.adminRoleSelect.value; refreshAdminViews(); });
-    els.adminSubnavBtns.forEach(btn => btn.addEventListener('click', () => setAdminTab(btn.dataset.tab)));
-    els.applyFilterBtn.addEventListener('click', renderList);
-    els.approveBtn.addEventListener('click', approveSelected);
-    els.rejectBtn.addEventListener('click', rejectSelected);
-    els.saveMemoBtn.addEventListener('click', saveMemo);
-    els.exportCsvBtn.addEventListener('click', () => executeExport('csv'));
-    els.exportZipBtn.addEventListener('click', () => executeExport('zip'));
-    els.seedBtn.addEventListener('click', () => { seedDemoData(); loadDb(); resolveSession(); updateEmployeeHeader(); refreshAdminViews(); alert('デモデータを再生成しました。'); });
-    els.resetBtn.addEventListener('click', () => {
+    els.adminRoleSelect.addEventListener('change',()=>{state.currentRole=els.adminRoleSelect.value;refreshAdminViews();});
+    els.adminSubnavBtns.forEach(btn=>btn.addEventListener('click',()=>setAdminTab(btn.dataset.tab)));
+    els.applyFilterBtn.addEventListener('click',renderList);
+    els.approveBtn.addEventListener('click',approveSelected);
+    els.rejectBtn.addEventListener('click',rejectSelected);
+    els.saveMemoBtn.addEventListener('click',saveMemo);
+    els.exportCsvBtn.addEventListener('click',()=>executeExport('csv'));
+    els.exportZipBtn.addEventListener('click',()=>executeExport('zip'));
+    els.seedBtn.addEventListener('click',()=>{seedDemoData();loadDb();resolveSession();updateEmployeeHeader();refreshAdminViews();alert('デモデータを再生成しました。');});
+    els.resetBtn.addEventListener('click',()=>{
       if(!confirm('全データを初期化します。よろしいですか？')) return;
       localStorage.removeItem(APP.storageKey);
-      stopCamera();
+      closeCameraOverlay();
       loadDb();
-      state.employeeSession = null;
-      state.selectedSubmissionId = null;
-      els.tokenInput.value = '';
-      updateEmployeeHeader();
-      showEmployeeStep(1);
-      refreshAdminViews();
+      state.employeeSession=null; state.selectedSubmissionId=null;
+      if(state.employeeCaptureUrl?.startsWith('blob:')) URL.revokeObjectURL(state.employeeCaptureUrl);
+      state.employeeCaptureBlob=null; state.employeeCaptureUrl=''; state.employeeSourceType='';
+      els.selectedPreviewArea.classList.add('hidden');
+      els.tokenInput.value='';
+      updateEmployeeHeader(); showEmployeeStep(1); refreshAdminViews();
     });
 
-    window.addEventListener('beforeunload', stopCamera);
+    window.addEventListener('beforeunload',closeCameraOverlay);
 
     loadDb();
-    state.currentRole = els.adminRoleSelect.value;
+    state.currentRole=els.adminRoleSelect.value;
     updateEmployeeHeader();
     showEmployeeStep(1);
     refreshAdminViews();
