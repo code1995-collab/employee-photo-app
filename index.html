@@ -540,7 +540,7 @@
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
-    const APP={storageKey:'badge_photo_app_demo_v13'};
+    const APP={storageKey:'badge_photo_app_demo_v14'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
     const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中',prevMotionSignature:null,motionEma:0}};
     const $=id=>document.getElementById(id);
@@ -626,10 +626,12 @@
       els.reviewImage.src='';
     }
     function updateStabilityUI(score,text){
-      state.camera.stableScore=score;
+      const bounded=Math.max(0,Math.min(100,score));
+      const quantized=Math.round(bounded/20)*20;
+      state.camera.stableScore=quantized;
       state.camera.stableText=text;
       if(els.stabilityText) els.stabilityText.textContent=text;
-      if(els.stabilityFill) els.stabilityFill.style.width=`${Math.max(0,Math.min(100,score))}%`;
+      if(els.stabilityFill) els.stabilityFill.style.width=`${quantized}%`;
     }
     function computeMotionSignature(ctx,w,h){
       const cropW=Math.floor(w*0.42), cropH=Math.floor(h*0.52);
@@ -719,6 +721,8 @@
     async function openCameraOverlay(deviceId=''){
       clearCapturedState();
       state.camera.overlayOpen=true;
+      resetStability();
+      if(els.cameraActions) els.cameraActions.classList.remove('hidden');
       els.cameraOverlay.classList.remove('hidden');
       els.cameraCaptured.classList.add('hidden');
       els.cameraCaptured.src='';
@@ -794,6 +798,7 @@
       const brightness=assessBrightness(ctx,canvas.width,canvas.height);
       let result;
       let stability;
+      let hasFace=false;
 
       if(state.camera.detector){
         try{
@@ -801,6 +806,7 @@
           result=withFaceAssessment(faces,canvas.width,canvas.height,brightness);
 
           if(faces && faces.length===1){
+            hasFace=true;
             const box=faces[0].boundingBox;
             stability=computeStability({
               cx:(box.x+box.width/2)/canvas.width,
@@ -812,10 +818,8 @@
           } else {
             stability=computeMotionOnlyStability(ctx,canvas.width,canvas.height);
             result.stability={...stability, ok:false, text:'顔を合わせてください'};
-            if(stability.text !== '判定中'){
-              updateStabilityUI(Math.max(18, Math.round(stability.score*0.45)), '顔を合わせてください');
-              result.stability.score = Math.max(18, Math.round(stability.score*0.45));
-            }
+            updateStabilityUI(Math.max(20, Math.round(stability.score*0.4)), '顔を合わせてください');
+            result.stability.score = Math.max(20, Math.round(stability.score*0.4));
           }
         }catch(e){
           result=fallbackAssessment(brightness);
@@ -828,10 +832,10 @@
         result.stability=stability;
       }
 
-      if(result.level==='ok' && result.stability?.ok){
+      if(hasFace && result.level==='ok' && result.stability?.ok){
         setCaptureMessage('ok','安定しています。撮影してください。','端末を止めたままシャッターを押してください。');
-      } else if(result.level==='ok' && result.stability && !result.stability.ok){
-        setCaptureMessage('warn','顔は合っています。端末を少し止めてください。','細かい揺れが収まると安定判定になります。');
+      } else if(hasFace && result.level==='ok' && result.stability && !result.stability.ok){
+        setCaptureMessage('warn','顔は合っています。端末を動かさないでください。','細かい揺れが収まると安定判定になります。');
       } else {
         setCaptureMessage(result.level==='ng'?'ng':'warn',result.message);
       }
@@ -879,6 +883,7 @@
       els.selectedPreviewImage.src=state.employeeCaptureUrl;
       els.selectedPreviewArea.classList.remove('hidden');
       closeGuidePanel();
+      if(els.cameraActions) els.cameraActions.classList.remove('hidden');
       closeCameraOverlay();
       showEmployeeStep(3);
     }
