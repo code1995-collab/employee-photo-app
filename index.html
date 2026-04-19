@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>顔写真収集アプリ - v6 実ファイル版</title>
+  <title>顔写真収集アプリ - v8 実ファイル版</title>
   <style>
     :root{
       --primary:#002045; --primary2:#123d6b; --bg:#f7fafc; --surface:#fff; --line:#dbe4ee;
@@ -108,68 +108,55 @@
     .camera-overlay-mask{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.26),rgba(0,0,0,.06) 18%,rgba(0,0,0,.06) 82%,rgba(0,0,0,.28))}
     .guide-frame{
       position:absolute; left:50%; top:47%; transform:translate(-50%,-50%);
-      width:min(66vw,372px); height:min(76vh,560px);
-      border:3px solid rgba(255,255,255,.96); border-radius:32px;
+      width:min(68vw,392px); height:min(78vh,580px);
+      border:3px solid rgba(255,255,255,.96); border-radius:28px;
       box-shadow:0 0 0 200vmax rgba(7,14,24,.34);
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      overflow:hidden;
     }
     .guide-frame::before,.guide-frame::after{
-      content:""; position:absolute; width:28px; height:28px; border-color:#fff; opacity:.95;
+      content:""; position:absolute; width:22px; height:22px; border-color:#fff; opacity:.98;
     }
-    .guide-frame::before{
-      left:10px; top:10px; border-top:4px solid #fff; border-left:4px solid #fff; border-radius:12px 0 0 0;
-      box-shadow: calc(100% - 48px) 0 0 0 transparent, 0 calc(100% - 48px) 0 0 transparent;
+    .guide-frame::before{left:10px; top:10px; border-top:4px solid #fff; border-left:4px solid #fff; border-radius:10px 0 0 0}
+    .guide-frame::after{right:10px; bottom:10px; border-right:4px solid #fff; border-bottom:4px solid #fff; border-radius:0 0 10px 0}
+    .guide-head-band{
+      position:absolute; left:10%; right:10%; top:8%;
+      min-height:46px; padding:10px 12px;
+      border-radius:16px; background:rgba(255,255,255,.12); border:2px dashed rgba(255,255,255,.9);
+      text-align:center; font-size:12px; font-weight:900; color:#fff;
     }
-    .guide-frame::after{
-      right:10px; bottom:10px; border-right:4px solid #fff; border-bottom:4px solid #fff; border-radius:0 0 12px 0;
+    .guide-face-core{
+      position:absolute; left:20%; right:20%; top:22%; bottom:24%;
+      border:2px solid rgba(255,255,255,.35); border-radius:22px;
+      background:rgba(255,255,255,.03);
     }
-    .guide-head-zone{
-      position:absolute; left:50%; top:11%; transform:translateX(-50%);
-      width:40%; height:18%; border:2px dashed rgba(255,255,255,.88); border-radius:50%;
-      background:rgba(255,255,255,.05);
+    .guide-center-line{
+      position:absolute; top:21%; bottom:22%; left:50%;
+      border-left:2px dashed rgba(255,255,255,.45);
     }
     .guide-eye-line,.guide-chin-line{
-      position:absolute; left:12%; right:12%; border-top:2px dashed rgba(255,255,255,.8);
+      position:absolute; left:12%; right:12%; border-top:2px dashed rgba(255,255,255,.85);
     }
     .guide-eye-line{top:34%}
-    .guide-chin-line{top:49%}
+    .guide-chin-line{top:56%}
     .guide-shoulder-band{
-      position:absolute; left:10%; right:10%; bottom:11%; height:18%;
-      border:2px dashed rgba(255,255,255,.82); border-radius:24px 24px 18px 18px;
-      background:rgba(255,255,255,.05);
+      position:absolute; left:10%; right:10%; bottom:8%;
+      min-height:58px; padding:14px 12px 10px;
+      border-radius:16px; background:rgba(255,255,255,.12); border:2px dashed rgba(255,255,255,.88);
+      text-align:center; font-size:12px; font-weight:900; color:#fff;
     }
-    .guide-frame-label{
-      position:absolute; left:50%; transform:translateX(-50%);
-      padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-size:11px; font-weight:900;
-      border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(8px);
-    }
-    .guide-frame-label.head{top:8px}
-    .guide-frame-label.shoulder{bottom:8px}
-    .guide-label{
-      position:absolute; left:50%; top:calc(47% - min(39vh,290px) - 44px); transform:translateX(-50%);
-      padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-size:12px; font-weight:800;
-      border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(8px);
-    }
-    .guide-side-note{
-      position:absolute; right:max(12px, calc(50% - min(33vw,186px) - 74px)); top:50%; transform:translateY(-50%);
-      writing-mode:vertical-rl; text-orientation:mixed; padding:10px 8px; border-radius:14px;
-      background:rgba(255,255,255,.12); color:#fff; font-size:11px; font-weight:800; border:1px solid rgba(255,255,255,.16);
+    .guide-side-tag{
+      position:absolute; left:-2px; padding:6px 10px;
+      border-radius:0 999px 999px 0; background:rgba(255,255,255,.18); color:#fff;
+      font-size:11px; font-weight:900; border:1px solid rgba(255,255,255,.18);
       backdrop-filter:blur(8px);
     }
-    .camera-help-panel{
-      position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; z-index:4; width:min(320px, calc(100vw - 32px));
-      padding:14px; border-radius:18px; background:rgba(7,14,24,.86); color:#fff; border:1px solid rgba(255,255,255,.14);
-      box-shadow:0 18px 36px rgba(0,0,0,.28); backdrop-filter:blur(12px);
-    }
-    .camera-help-panel h4{margin:0 0 8px;font-size:15px}
-    .camera-help-panel ul{margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:rgba(255,255,255,.88)}
-    .camera-help-close{position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:10px; background:rgba(255,255,255,.12); color:#fff}
-    .readiness-bar{
-      margin:0 auto; max-width:680px; width:100%; height:8px; border-radius:999px; background:rgba(255,255,255,.14); overflow:hidden;
-      border:1px solid rgba(255,255,255,.08);
-    }
-    .readiness-fill{
-      height:100%; width:0%; background:linear-gradient(90deg, #7dd3fc, #86efac); transition:width .2s ease;
+    .guide-side-tag.top{top:13%}
+    .guide-side-tag.bottom{bottom:13%}
+    .guide-label{
+      position:absolute; left:50%; top:calc(47% - min(39vh,290px) - 46px); transform:translateX(-50%);
+      padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-size:12px; font-weight:800;
+      border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(8px);
     }
     .camera-bottom{padding:12px 16px calc(18px + env(safe-area-inset-bottom));position:relative;z-index:2;display:grid;gap:12px;background:linear-gradient(180deg,rgba(8,21,35,0),rgba(8,21,35,.55) 20%,rgba(8,21,35,.82) 48%,rgba(8,21,35,.9))}
     .capture-message{margin:0 auto;max-width:680px;width:100%;padding:12px 14px;border-radius:16px;font-size:15px;font-weight:800;text-align:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px)}
@@ -205,7 +192,7 @@
     <div class="topbar-inner">
       <div class="brand">
         <h1>顔写真収集アプリ</h1>
-        <p>v6 実ファイル書き出し版（全画面カメラ + 明確なガイド枠）</p>
+        <p>v8 実ファイル書き出し版（高精度ガイド判定着手）</p>
       </div>
       <div class="nav-switch">
         <button class="switch-btn active" id="switchEmployee">従業員モード</button>
@@ -215,7 +202,7 @@
   </header>
 
   <main class="shell">
-    <div class="notice">今回は <strong>実ファイルでのみ出力</strong> しています。全画面カメラは維持しつつ、楕円ガイドをやめて、<strong>顔の位置・大きさ・肩幅の目安が分かる縦長フレーム</strong> に変更しています。</div>
+    <div class="notice">今回は <strong>実ファイルでのみ出力</strong> しています。全画面カメラは維持しつつ、ガイド枠を<strong>頭・顔・肩の置き場が分かる帯付きフレーム</strong>に変更し、顔向き・ブレ・遮蔽・背景ノイズの判定ロジックを追加しています。</div>
 
     <section id="employeeApp">
       <div class="hero">
@@ -482,7 +469,7 @@
       <button class="icon-btn" id="closeCameraOverlay">×</button>
       <div style="text-align:center">
         <div class="camera-title">顔写真を撮影してください</div>
-        <div class="camera-sub">顔と肩がガイド枠に収まるように合わせてください</div>
+        <div class="camera-sub">頭・顔・肩をガイド帯に合わせてください</div>
       </div>
       <button class="icon-btn" id="cameraInfoBtn">i</button>
     </div>
@@ -490,9 +477,9 @@
       <button class="camera-help-close" id="cameraHelpClose">×</button>
       <h4>撮影のコツ</h4>
       <ul>
-        <li>頭頂が上の目安より上に出ないようにする</li>
-        <li>あごが下の破線より少し上にくるようにする</li>
-        <li>肩幅が下の帯の中に収まるようにする</li>
+        <li>頭は上の帯の中に収める</li>
+        <li>顔は中央の帯にまっすぐ入れる</li>
+        <li>肩は下の帯に沿うように入れる</li>
         <li>明るい場所で、正面を向いて撮影する</li>
       </ul>
     </div>
@@ -500,15 +487,16 @@
       <video id="cameraVideo" class="camera-video" autoplay muted playsinline></video>
       <img id="cameraCaptured" class="camera-captured hidden" alt="captured">
       <div class="camera-overlay-mask" id="cameraMaskLayer">
-        <div class="guide-label">頭頂・あご・肩をこの枠に合わせる</div>
-        <div class="guide-side-note">肩まで入れる</div>
+        <div class="guide-label">頭・顔・肩をこのガイドに合わせる</div>
         <div class="guide-frame">
-          <div class="guide-frame-label head">頭</div>
-          <div class="guide-head-zone"></div>
+          <div class="guide-head-band">頭はこの帯の中</div>
+          <div class="guide-face-core"></div>
+          <div class="guide-center-line"></div>
           <div class="guide-eye-line"></div>
           <div class="guide-chin-line"></div>
-          <div class="guide-shoulder-band"></div>
-          <div class="guide-frame-label shoulder">肩</div>
+          <div class="guide-shoulder-band">肩はこの帯に沿わせる</div>
+          <div class="guide-side-tag top">頭頂</div>
+          <div class="guide-side-tag bottom">肩</div>
         </div>
       </div>
     </div>
@@ -520,7 +508,7 @@
         <button class="shutter" id="overlayCaptureBtn" disabled aria-label="撮影"></button>
         <button class="side-link right" id="overlaySwitchCameraBtn" disabled>切替</button>
       </div>
-      <div class="camera-mini-note" id="cameraMiniNote">頭頂から肩までが枠に収まると撮りやすいです。</div>
+      <div class="camera-mini-note" id="cameraMiniNote">頭は上の帯、肩は下の帯に沿うように構えると合わせやすいです。</div>
       <div class="btn-row hidden" id="overlayRetakeArea" style="justify-content:center">
         <button class="btn secondary" id="overlayRetakeBtn">撮り直す</button>
         <button class="btn primary" id="overlayUsePhotoBtn">この写真で進む</button>
@@ -533,9 +521,9 @@
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
-    const APP={storageKey:'badge_photo_app_demo_v6'};
+    const APP={storageKey:'badge_photo_app_demo_v8'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
-    const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,helpOpen:false,stableFrames:0,prevFaceBox:null,autoCaptureFired:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]}}};
+    const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,helpOpen:false,stableFrames:0,countdownValue:0,prevFaceBox:null,autoCaptureFired:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[],metrics:{}}}};
     const $=id=>document.getElementById(id);
     const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraHelpPanel:$('cameraHelpPanel'),cameraHelpClose:$('cameraHelpClose'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),readinessFill:$('readinessFill'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect')};
 
@@ -634,7 +622,7 @@
       els.overlayRetakeArea.classList.add('hidden');
       els.overlayCaptureBtn.disabled=true;
       setReadiness(0);
-      setCaptureMessage('warn','カメラを起動して、顔と肩を枠に合わせてください。');
+      setCaptureMessage('warn','カメラを起動して、頭・顔・肩をガイドに合わせてください。');
       if(!navigator.mediaDevices?.getUserMedia){alert('この端末・ブラウザではカメラに対応していません。保存済み写真を選択してください。');closeCameraOverlay();return;}
       try{
         stopCamera();
@@ -662,6 +650,82 @@
       stopCamera();
       els.cameraOverlay.classList.add('hidden');
     }
+
+    function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+    function getSkinMaskMetrics(imageData){
+      const data=imageData.data; let skin=0,total=0,sumX=0,sumY=0;
+      for(let i=0;i<data.length;i+=4){
+        const r=data[i], g=data[i+1], b=data[i+2];
+        const max=Math.max(r,g,b), min=Math.min(r,g,b);
+        const isSkin = r>95 && g>40 && b>20 && (max-min)>15 && Math.abs(r-g)>15 && r>g && r>b;
+        if(isSkin){skin++; const idx=i/4; const x=idx%(imageData.width), y=Math.floor(idx/imageData.width); sumX+=x; sumY+=y;}
+        total++;
+      }
+      return {ratio: total?skin/total:0, centerX: skin?sumX/skin/imageData.width:0.5, centerY: skin?sumY/skin/imageData.height:0.5};
+    }
+    function varianceOfLaplacian(gray,w,h){
+      let sum=0, sum2=0, n=0;
+      for(let y=1;y<h-1;y++){
+        for(let x=1;x<w-1;x++){
+          const i=y*w+x;
+          const lap = -4*gray[i] + gray[i-1] + gray[i+1] + gray[i-w] + gray[i+w];
+          sum += lap; sum2 += lap*lap; n++;
+        }
+      }
+      const mean = n?sum/n:0;
+      return n?(sum2/n - mean*mean):0;
+    }
+    function computeBlurMetric(ctx, x, y, w, h){
+      const img=ctx.getImageData(x,y,w,h); const data=img.data;
+      const gray=[...Array(w*h)].map(()=>0);
+      for(let i=0,j=0;i<data.length;i+=4,j++){gray[j]=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];}
+      return varianceOfLaplacian(gray,w,h);
+    }
+    function computeBackgroundNoise(ctx, faceBox, frameW, frameH){
+      const margin=12;
+      const sx=clamp(Math.floor(faceBox.x-margin),0,frameW-1);
+      const sy=clamp(Math.floor(faceBox.y-margin),0,frameH-1);
+      const ex=clamp(Math.ceil(faceBox.x+faceBox.width+margin),0,frameW);
+      const ey=clamp(Math.ceil(faceBox.y+faceBox.height+margin),0,frameH);
+      const img=ctx.getImageData(0,0,frameW,frameH).data;
+      let edge=0, samples=0;
+      for(let y=1;y<frameH-1;y+=2){
+        for(let x=1;x<frameW-1;x+=2){
+          if(x>=sx && x<=ex && y>=sy && y<=ey) continue;
+          const idx=(y*frameW+x)*4;
+          const lum=0.299*img[idx]+0.587*img[idx+1]+0.114*img[idx+2];
+          const idxR=(y*frameW+(x+1))*4, idxD=((y+1)*frameW+x)*4;
+          const lumR=0.299*img[idxR]+0.587*img[idxR+1]+0.114*img[idxR+2];
+          const lumD=0.299*img[idxD]+0.587*img[idxD+1]+0.114*img[idxD+2];
+          edge += Math.abs(lum-lumR) + Math.abs(lum-lumD);
+          samples++;
+        }
+      }
+      return samples?edge/samples:0;
+    }
+    function computeOrientationMaskMetrics(ctx, faceBox){
+      const x=Math.max(0,Math.floor(faceBox.x)), y=Math.max(0,Math.floor(faceBox.y));
+      const w=Math.max(20,Math.floor(faceBox.width)), h=Math.max(20,Math.floor(faceBox.height));
+      const img=ctx.getImageData(x,y,w,h);
+      const upperH=Math.max(10,Math.floor(h*0.58));
+      const lowerStart=Math.floor(h*0.45);
+      const upper=ctx.getImageData(x,y,w,upperH);
+      const lower=ctx.getImageData(x,y+lowerStart,w,Math.max(10,h-lowerStart));
+      const allSkin=getSkinMaskMetrics(img);
+      const upperSkin=getSkinMaskMetrics(upper);
+      const lowerSkin=getSkinMaskMetrics(lower);
+      const half=Math.floor(w/2);
+      const left=ctx.getImageData(x,y,half,h);
+      const right=ctx.getImageData(x+half,y,w-half,h);
+      const leftSkin=getSkinMaskMetrics(left).ratio;
+      const rightSkin=getSkinMaskMetrics(right).ratio;
+      const lrDiff=Math.abs(leftSkin-rightSkin);
+      const yawBias=Math.abs(allSkin.centerX-0.5);
+      const pitchBias=Math.abs(allSkin.centerY-0.5);
+      const maskLikelihood = lowerSkin.ratio < 0.16 && upperSkin.ratio > lowerSkin.ratio*1.5;
+      const hatLikelihood = upperSkin.ratio < 0.10 && lowerSkin.ratio > 0.10;
+      return {lrDiff,yawBias,pitchBias,maskLikelihood,hatLikelihood,skinRatio:allSkin.ratio,lowerSkin:lowerSkin.ratio,upperSkin:upperSkin.ratio};
+    }
     function assessBrightness(ctx,w,h){
       const sampleW=Math.floor(w*.44), sampleH=Math.floor(h*.44);
       const sx=Math.floor((w-sampleW)/2), sy=Math.floor((h-sampleH)/2);
@@ -680,9 +744,10 @@
       return {level,message,score,rejectCandidates:brightness.tone==='ng'?['TOO_DARK']:[]};
     }
     
-    function withFaceAssessment(faces,w,h,brightness){
-      if(!faces||faces.length===0) return {level:'warn',message:'顔を枠の中央に合わせてください。',score:20+brightness.score,rejectCandidates:['OTHER'],faceBox:null,stable:false};
-      if(faces.length>1) return {level:'ng',message:'本人だけが写るようにしてください。',score:15+brightness.score,rejectCandidates:['MULTIPLE_PEOPLE'],faceBox:null,stable:false};
+
+    function withFaceAssessment(faces,w,h,brightness,metrics){
+      if(!faces||faces.length===0) return {level:'warn',message:'顔をガイドの中央に合わせてください。',score:20+brightness.score,rejectCandidates:['OTHER'],faceBox:null,stable:false,metrics};
+      if(faces.length>1) return {level:'ng',message:'本人だけが写るようにしてください。',score:15+brightness.score,rejectCandidates:['MULTIPLE_PEOPLE'],faceBox:null,stable:false,metrics};
       const box=faces[0].boundingBox;
       const centerX=box.x+box.width/2, centerY=box.y+box.height/2;
       const guideX=w/2, guideY=h*0.40;
@@ -690,19 +755,43 @@
       const ratio=box.height/h;
       let score=brightness.score+10;
       const rejects=[];
-      let message='そのままで撮影できます。';
+      let messages=[];
       let level=brightness.tone==='ng'?'ng':'ok';
 
-      if(dx>0.13||dy>0.18){level='warn';message='顔を枠の中央に合わせてください。';score+=8;}
-      else{score+=24;}
+      if(dx>0.11||dy>0.16){level='warn';messages.push('顔をガイド中央に合わせてください');score+=8;}
+      else{score+=20;}
 
-      if(ratio<0.23){level='warn';message='少し近づいてください。';rejects.push('FACE_TOO_SMALL');score+=6;}
-      else if(ratio<=0.46){score+=24;}
-      else if(ratio>0.58){level='warn';message='少し離れてください。';score+=10;}
-      else{score+=12;}
+      if(ratio<0.24){level='warn';messages.push('少し近づいてください');rejects.push('FACE_TOO_SMALL');score+=6;}
+      else if(ratio<=0.48){score+=20;}
+      else if(ratio>0.60){level='warn';messages.push('少し離れてください');score+=10;}
+      else{score+=10;}
 
-      if(brightness.tone==='ng'){level='ng';message='明るい場所で撮影してください。';rejects.push('TOO_DARK');}
-      else if(brightness.tone==='warn'&&level==='ok'){level='warn';message='もう少し明るい場所だと撮りやすいです。';}
+      if(brightness.tone==='ng'){level='ng';messages=['明るい場所で撮影してください'];rejects.push('TOO_DARK');}
+      else if(brightness.tone==='warn'&&level==='ok'){level='warn';messages.push('もう少し明るい場所だと撮りやすいです');}
+
+      if(metrics.blurVariance < 210){
+        level='ng'; messages=['ピントが合うように少し端末を固定してください']; rejects.push('BLURRY');
+      } else if(metrics.blurVariance < 320 && level==='ok'){
+        level='warn'; messages.push('少し端末を固定すると撮りやすいです');
+      }
+
+      if(metrics.orientationBad){
+        level='ng'; messages=['正面を向いてください']; rejects.push('NOT_FRONT_FACE');
+      } else if(metrics.orientationWarn && level==='ok'){
+        level='warn'; messages.push('できるだけ正面を向いてください');
+      }
+
+      if(metrics.maskLikelihood){
+        level='ng'; messages=['口元が隠れないようにしてください']; rejects.push('MASK_OR_HAT');
+      }
+      if(metrics.hatLikelihood){
+        level='ng'; messages=['額が見えるようにしてください']; rejects.push('MASK_OR_HAT');
+      }
+      if(metrics.backgroundNoise > 34){
+        if(level==='ok') level='warn';
+        messages.push('背景はなるべくシンプルにしてください');
+        rejects.push('BACKGROUND_NOISY');
+      }
 
       let stable=false;
       if(state.camera.prevFaceBox){
@@ -710,11 +799,12 @@
         const moveX=Math.abs((prev.x+prev.width/2)-(box.x+box.width/2))/w;
         const moveY=Math.abs((prev.y+prev.height/2)-(box.y+box.height/2))/h;
         const sizeDiff=Math.abs(prev.height-box.height)/h;
-        stable = moveX<0.035 && moveY<0.04 && sizeDiff<0.035;
+        stable = moveX<0.018 && moveY<0.02 && sizeDiff<0.02 && metrics.blurVariance>260;
       }
       state.camera.prevFaceBox = {x:box.x,y:box.y,width:box.width,height:box.height};
 
-      return {level,message,score:Math.min(100,score),rejectCandidates:[...new Set(rejects)],faceBox:box,stable};
+      const message = messages[0] || 'そのままで撮影できます。';
+      return {level,message,score:Math.min(100,score),rejectCandidates:[...new Set(rejects)],faceBox:box,stable,metrics};
     }
     async function assessFrame(){
       if(!state.camera.stream||!state.camera.overlayOpen||state.employeeCaptureBlob||els.cameraVideo.readyState<2) return;
@@ -728,26 +818,44 @@
       if(state.camera.detector){
         try{
           const faces=await state.camera.detector.detect(canvas);
-          result=withFaceAssessment(faces,canvas.width,canvas.height,brightness);
+          if(faces && faces.length===1){
+            const box=faces[0].boundingBox;
+            const x=clamp(Math.floor(box.x),0,canvas.width-2), y=clamp(Math.floor(box.y),0,canvas.height-2);
+            const w=Math.max(20,Math.min(canvas.width-x-1, Math.floor(box.width)));
+            const h=Math.max(20,Math.min(canvas.height-y-1, Math.floor(box.height)));
+            const blurVariance = computeBlurMetric(ctx, x, y, w, h);
+            const orient = computeOrientationMaskMetrics(ctx, {x,y,width:w,height:h});
+            const backgroundNoise = computeBackgroundNoise(ctx, {x,y,width:w,height:h}, canvas.width, canvas.height);
+            const metrics = {
+              blurVariance,
+              orientationWarn: orient.lrDiff>0.14 || orient.yawBias>0.10 || orient.pitchBias>0.12,
+              orientationBad: orient.lrDiff>0.22 || orient.yawBias>0.16 || orient.pitchBias>0.18,
+              maskLikelihood: orient.maskLikelihood,
+              hatLikelihood: orient.hatLikelihood,
+              backgroundNoise,
+              skinRatio: orient.skinRatio
+            };
+            result=withFaceAssessment(faces,canvas.width,canvas.height,brightness,metrics);
+          } else {
+            result=withFaceAssessment(faces,canvas.width,canvas.height,brightness,{});
+          }
         }catch(e){
           result=fallbackAssessment(brightness);
+          result.metrics={};
         }
       } else {
         result=fallbackAssessment(brightness);
+        result.metrics={};
       }
 
       if(result.level==='ok' && result.stable){
         state.camera.stableFrames += 1;
       } else {
         state.camera.stableFrames = 0;
-        state.camera.autoCaptureFired = false
-      }
-
-      if(result.level!=='ok'){
         state.camera.autoCaptureFired = false;
       }
-
-      const readiness = result.level==='ok' ? Math.min(100, 70 + state.camera.stableFrames*10) : result.level==='warn' ? 45 : 20;
+      if(result.level!=='ok'){ state.camera.autoCaptureFired = false; }
+      const readiness = result.level==='ok' ? Math.min(100, 70 + state.camera.stableFrames*10) : result.level==='warn' ? 45 : 18;
       state.camera.lastAssessment=result;
       state.employeeQuality=result;
       setReadiness(readiness);
@@ -810,7 +918,7 @@
       els.overlayRetakeArea.classList.add('hidden');
       els.overlayCaptureBtn.disabled=!state.camera.stream;
       setReadiness(0);
-      setCaptureMessage('warn','顔と肩が枠に収まるように合わせてください。');
+      setCaptureMessage('warn','頭・顔・肩がガイドに収まるように合わせてください。');
     }
     function useCapturedPhoto(){
       if(!state.employeeCaptureBlob||!state.employeeCaptureUrl) return;
