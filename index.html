@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>顔写真収集アプリ - v9 実ファイル版</title>
+  <title>顔写真収集アプリ - v12 実ファイル版</title>
   <style>
     :root{
       --primary:#002045; --primary2:#123d6b; --bg:#f7fafc; --surface:#fff; --line:#dbe4ee;
@@ -106,35 +106,70 @@
     .camera-stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#081523}
     .camera-video,.camera-captured{width:100%;height:100%;object-fit:cover;display:block;background:#081523}
     .camera-overlay-mask{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.26),rgba(0,0,0,.06) 18%,rgba(0,0,0,.06) 82%,rgba(0,0,0,.28))}
+    
     .guide-frame{
       position:absolute; left:50%; top:47%; transform:translate(-50%,-50%);
-      width:min(64vw,360px); height:min(74vh,540px);
-      border:4px solid rgba(255,255,255,.96); border-radius:30px;
+      width:min(66vw,370px); height:min(76vh,560px);
+      border:4px solid rgba(255,255,255,.96); border-radius:28px;
       box-shadow:0 0 0 200vmax rgba(7,14,24,.35);
+      overflow:hidden;
     }
-    .guide-frame::before,.guide-frame::after{
-      content:""; position:absolute; left:14%; right:14%;
+    .guide-frame::before{
+      content:""; position:absolute; left:0; right:0; top:0; height:23%;
+      background:rgba(255,255,255,.08);
+      border-bottom:2px dashed rgba(255,255,255,.82);
+    }
+    .guide-frame::after{
+      content:""; position:absolute; left:0; right:0; bottom:0; height:24%;
+      background:rgba(255,255,255,.08);
       border-top:2px dashed rgba(255,255,255,.82);
     }
-    .guide-frame::before{top:24%}
-    .guide-frame::after{top:56%}
     .guide-head{
-      position:absolute; left:50%; top:15%; transform:translateX(-50%);
-      width:36%; height:20%;
-      border:2px solid rgba(255,255,255,.72); border-radius:50%;
+      position:absolute; left:50%; top:11%; transform:translateX(-50%);
+      width:34%; height:16%;
+      border:2px solid rgba(255,255,255,.78); border-radius:50%;
+      background:rgba(255,255,255,.04);
+    }
+    .guide-face{
+      position:absolute; left:50%; top:33%; transform:translateX(-50%);
+      width:38%; height:28%;
+      border:2px solid rgba(255,255,255,.68); border-radius:48% 48% 44% 44%;
+      background:rgba(255,255,255,.03);
     }
     .guide-shoulder{
-      position:absolute; left:50%; bottom:10%; transform:translateX(-50%);
-      width:68%; height:20%;
-      border:2px solid rgba(255,255,255,.6); border-bottom:none;
-      border-radius:50% 50% 0 0;
+      position:absolute; left:50%; bottom:8%; transform:translateX(-50%);
+      width:72%; height:18%;
+      border:2px solid rgba(255,255,255,.62); border-bottom:none;
+      border-radius:50% 50% 0 0; background:rgba(255,255,255,.03);
+    }
+    .guide-center-line{
+      position:absolute; top:0; bottom:0; left:50%; width:0;
+      border-left:2px dashed rgba(255,255,255,.35);
+      transform:translateX(-50%);
     }
     .guide-label{
-      position:absolute; left:50%; top:calc(47% - min(37vh,270px) - 42px); transform:translateX(-50%);
+      position:absolute; left:50%; top:calc(47% - min(38vh,280px) - 42px); transform:translateX(-50%);
       padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; font-size:12px; font-weight:800;
       border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(8px);
     }
-    .camera-bottom{padding:12px 16px calc(18px + env(safe-area-inset-bottom));position:relative;z-index:2;display:grid;gap:12px;background:linear-gradient(180deg,rgba(8,21,35,0),rgba(8,21,35,.55) 20%,rgba(8,21,35,.82) 48%,rgba(8,21,35,.9))}
+    .guide-hint-badges{
+      position:absolute; left:50%; bottom:calc(50% - min(38vh,280px) - 54px); transform:translateX(-50%);
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+    }
+    .guide-hint-badge{
+      padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16); font-size:11px; font-weight:800; color:#fff;
+      backdrop-filter:blur(8px);
+    }
+    .guide-panel{
+      position:fixed; inset:auto 16px calc(16px + env(safe-area-inset-bottom)) 16px; z-index:130;
+      background:rgba(15,31,51,.96); color:#fff; border:1px solid rgba(255,255,255,.12);
+      border-radius:18px; padding:14px 14px 12px; box-shadow:0 18px 40px rgba(0,0,0,.32);
+    }
+    .guide-panel h4{margin:0 0 8px; font-size:15px}
+    .guide-panel p{margin:0; font-size:13px; line-height:1.7; color:rgba(255,255,255,.88)}
+    .guide-panel .btn-row{margin-top:12px; justify-content:flex-end}
+.camera-bottom{padding:12px 16px calc(18px + env(safe-area-inset-bottom));position:relative;z-index:2;display:grid;gap:12px;background:linear-gradient(180deg,rgba(8,21,35,0),rgba(8,21,35,.55) 20%,rgba(8,21,35,.82) 48%,rgba(8,21,35,.9))}
     .capture-message{margin:0 auto;max-width:680px;width:100%;padding:12px 14px;border-radius:16px;font-size:15px;font-weight:800;text-align:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px)}
     .capture-message.ok{background:rgba(17,122,73,.18);border-color:rgba(147,233,182,.24)}
     .capture-message.warn{background:rgba(183,121,31,.2);border-color:rgba(255,214,143,.24)}
@@ -164,7 +199,7 @@
       .grid2,.grid3,.split,.toolbar,.metric-grid{grid-template-columns:1fr}
       .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
       .guide-frame{width:min(76vw,340px);height:min(68vh,500px)}
-      .guide-label{top:calc(47% - min(34vh,240px) - 38px)}
+      .guide-label{top:calc(47% - min(35vh,250px) - 38px)}
     }
   </style>
 </head>
@@ -458,10 +493,17 @@
       <video id="cameraVideo" class="camera-video" autoplay muted playsinline></video>
       <img id="cameraCaptured" class="camera-captured hidden" alt="captured">
       <div class="camera-overlay-mask" id="cameraMaskLayer">
-        <div class="guide-label">顔と肩をこの枠に合わせる</div>
+        <div class="guide-label">頭・顔・肩を帯に合わせる</div>
         <div class="guide-frame">
+          <div class="guide-center-line"></div>
           <div class="guide-head"></div>
+          <div class="guide-face"></div>
           <div class="guide-shoulder"></div>
+        </div>
+        <div class="guide-hint-badges">
+          <div class="guide-hint-badge">頭は上帯</div>
+          <div class="guide-hint-badge">顔は中央帯</div>
+          <div class="guide-hint-badge">肩は下帯</div>
         </div>
       </div>
     </div>
@@ -485,7 +527,16 @@
     </div>
   </section>
 
-  <canvas id="captureCanvas" class="hidden"></canvas>
+  
+  <section id="guidePanel" class="guide-panel hidden" aria-live="polite">
+    <h4>撮影ガイド</h4>
+    <p>頭は上帯、顔は中央帯、肩は下帯に入るように合わせてください。枠の中央線に鼻筋が近いと合わせやすいです。</p>
+    <div class="btn-row">
+      <button class="btn secondary" id="closeGuidePanelBtn">閉じる</button>
+    </div>
+  </section>
+
+<canvas id="captureCanvas" class="hidden"></canvas>
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
@@ -493,7 +544,7 @@
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
     const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中',prevMotionSignature:null,motionEma:0}};
     const $=id=>document.getElementById(id);
-    const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect'),stabilityText:$('stabilityText'),stabilityFill:$('stabilityFill')};
+    const els={switchEmployee:$('switchEmployee'),switchAdmin:$('switchAdmin'),employeeApp:$('employeeApp'),adminApp:$('adminApp'),employeeStatusLabel:$('employeeStatusLabel'),employeeDeadlineLabel:$('employeeDeadlineLabel'),progressFill:$('progressFill'),stepIndicators:[...document.querySelectorAll('#stepIndicators .step')],screens:[...document.querySelectorAll('#employeeApp .screen')],tokenInput:$('tokenInput'),employeeNameText:$('employeeNameText'),employeeCodeText:$('employeeCodeText'),employeeDeptText:$('employeeDeptText'),employeeFileNameText:$('employeeFileNameText'),openCameraBtn:$('openCameraBtn'),openFileBtn:$('openFileBtn'),fileInput:$('fileInput'),selectedPreviewArea:$('selectedPreviewArea'),selectedPreviewImage:$('selectedPreviewImage'),reviewImage:$('reviewImage'),reviewCode:$('reviewCode'),reviewName:$('reviewName'),reviewDept:$('reviewDept'),reviewFileName:$('reviewFileName'),reviewSourceType:$('reviewSourceType'),qualityChip:$('qualityChip'),qualityMessage:$('qualityMessage'),completeFileName:$('completeFileName'),rejectReasonList:$('rejectReasonList'),rejectCommentText:$('rejectCommentText'),resubmitCameraBtn:$('resubmitCameraBtn'),resubmitFileBtn:$('resubmitFileBtn'),backBtn:$('backBtn'),nextBtn:$('nextBtn'),captureCanvas:$('captureCanvas'),analysisCanvas:$('analysisCanvas'),adminRoleSelect:$('adminRoleSelect'),adminTabs:[...document.querySelectorAll('.admin-tab')],adminSubnavBtns:[...document.querySelectorAll('.subnav-btn')],metricTotal:$('metricTotal'),metricNotStarted:$('metricNotStarted'),metricSubmitted:$('metricSubmitted'),metricApproved:$('metricApproved'),metricRejected:$('metricRejected'),metricExpired:$('metricExpired'),recentRejectedBox:$('recentRejectedBox'),filterKeyword:$('filterKeyword'),filterStatus:$('filterStatus'),filterDept:$('filterDept'),filterOverdue:$('filterOverdue'),applyFilterBtn:$('applyFilterBtn'),submissionTableBody:$('submissionTableBody'),detailEmpty:$('detailEmpty'),detailCard:$('detailCard'),detailTitle:$('detailTitle'),detailOriginalImage:$('detailOriginalImage'),detailNormalizedImage:$('detailNormalizedImage'),detailCode:$('detailCode'),detailName:$('detailName'),detailDept:$('detailDept'),detailStatus:$('detailStatus'),detailSubmittedAt:$('detailSubmittedAt'),detailScore:$('detailScore'),detailMemo:$('detailMemo'),saveMemoBtn:$('saveMemoBtn'),detailRejectHistory:$('detailRejectHistory'),approveComment:$('approveComment'),approveBtn:$('approveBtn'),rejectReasonChecks:$('rejectReasonChecks'),rejectComment:$('rejectComment'),notifyEmployeeCheck:$('notifyEmployeeCheck'),rejectBtn:$('rejectBtn'),exportDept:$('exportDept'),exportFrom:$('exportFrom'),exportTo:$('exportTo'),exportCsvBtn:$('exportCsvBtn'),exportZipBtn:$('exportZipBtn'),exportLogBox:$('exportLogBox'),notificationLogBox:$('notificationLogBox'),auditLogBox:$('auditLogBox'),seedBtn:$('seedBtn'),resetBtn:$('resetBtn'),cameraOverlay:$('cameraOverlay'),closeCameraOverlay:$('closeCameraOverlay'),cameraInfoBtn:$('cameraInfoBtn'),cameraVideo:$('cameraVideo'),cameraCaptured:$('cameraCaptured'),cameraMaskLayer:$('cameraMaskLayer'),captureMessage:$('captureMessage'),cameraMiniNote:$('cameraMiniNote'),guidePanel:$('guidePanel'),closeGuidePanelBtn:$('closeGuidePanelBtn'),overlayFileBtn:$('overlayFileBtn'),overlayCaptureBtn:$('overlayCaptureBtn'),overlaySwitchCameraBtn:$('overlaySwitchCameraBtn'),overlayRetakeArea:$('overlayRetakeArea'),overlayRetakeBtn:$('overlayRetakeBtn'),overlayUsePhotoBtn:$('overlayUsePhotoBtn'),cameraDeviceSelect:$('cameraDeviceSelect'),stabilityText:$('stabilityText'),stabilityFill:$('stabilityFill')};
 
     function uid(p){return `${p}_${Math.random().toString(36).slice(2,10)}_${Date.now().toString(36)}`;}
     function nowIso(){return new Date().toISOString();}
@@ -600,14 +651,14 @@
       for(let i=0;i<sig.length;i++) diff += Math.abs(sig[i]-state.camera.prevMotionSignature[i]);
       diff /= sig.length;
       state.camera.prevMotionSignature=sig;
-      state.camera.motionEma = state.camera.motionEma*0.72 + diff*0.28;
+      state.camera.motionEma = state.camera.motionEma*0.84 + diff*0.16;
       const motion = state.camera.motionEma;
-      let score = 100 - Math.min(82, motion*5.5);
+      let score = 100 - Math.min(72, motion*3.2);
       score = Math.max(6, Math.min(100, Math.round(score)));
       let text='安定';
       let ok=true;
-      if(motion>18){ text='動きあり'; ok=false; }
-      else if(motion>10){ text='やや不安定'; ok=false; }
+      if(motion>24){ text='動きあり'; ok=false; }
+      else if(motion>14){ text='やや不安定'; ok=false; }
       updateStabilityUI(score,text);
       return {ok,score,text,motion};
     }
@@ -624,16 +675,16 @@
       const mad = (key,m)=> hist.reduce((a,b)=>a+Math.abs(b[key]-m),0)/hist.length;
       const cxMad=mad('cx',meanCx), cyMad=mad('cy',meanCy), sizeMad=mad('size',meanSize);
       let score=100;
-      score -= Math.min(28, cxMad*1200);
-      score -= Math.min(24, cyMad*1050);
-      score -= Math.min(22, sizeMad*1300);
+      score -= Math.min(22, cxMad*820);
+      score -= Math.min(20, cyMad*760);
+      score -= Math.min(18, sizeMad*920);
       score = Math.max(0, Math.min(100, Math.round(score)));
       let text='安定';
       let ok=true;
-      if(cxMad>0.028 || cyMad>0.032 || sizeMad>0.026){
+      if(cxMad>0.045 || cyMad>0.05 || sizeMad>0.04){
         text='動きあり';
         ok=false;
-      } else if(score<68){
+      } else if(score<58){
         text='やや不安定';
         ok=false;
       }
@@ -656,6 +707,7 @@
     function stopCamera(){if(state.camera.stream){state.camera.stream.getTracks().forEach(t=>t.stop());state.camera.stream=null;} if(state.camera.timer){clearInterval(state.camera.timer);state.camera.timer=null;}}
     function setupDetector(){if('FaceDetector' in window){try{state.camera.detector=new FaceDetector({fastMode:true,maxDetectedFaces:2});return;}catch(e){}}state.camera.detector=null;}
     async function openCameraOverlay(deviceId=''){
+      clearCapturedState();
       state.camera.overlayOpen=true;
       els.cameraOverlay.classList.remove('hidden');
       els.cameraCaptured.classList.add('hidden');
@@ -665,7 +717,7 @@
       els.overlayRetakeArea.classList.add('hidden');
       els.overlayCaptureBtn.disabled=true;
       resetStability();
-      setCaptureMessage('warn','カメラを起動して、顔と肩を枠に合わせてください。');
+      setCaptureMessage('warn','カメラを起動して、頭・顔・肩を帯に合わせてください。');
       if(!navigator.mediaDevices?.getUserMedia){alert('この端末・ブラウザではカメラに対応していません。保存済み写真を選択してください。');closeCameraOverlay();return;}
       try{
         stopCamera();
@@ -697,7 +749,7 @@
     }
     function fallbackAssessment(brightness){
       const level=brightness.tone==='ng'?'ng':brightness.tone==='warn'?'warn':'ok';
-      const message=brightness.tone==='ng'?'明るい場所で撮影してください。':'枠の中央に顔と肩を合わせてください。';
+      const message=brightness.tone==='ng'?'明るい場所で撮影してください。':'頭・顔・肩を帯に合わせてください。';
       const score=Math.min(100,brightness.score+35);
       return {level,message,score,rejectCandidates:brightness.tone==='ng'?['TOO_DARK']:[]};
     }
@@ -802,11 +854,7 @@
       els.selectedPreviewArea.classList.add('hidden');
     }
     function resetCaptureForRetake(){
-      if(state.employeeCaptureUrl?.startsWith('blob:')) URL.revokeObjectURL(state.employeeCaptureUrl);
-      state.employeeCaptureBlob=null;
-      state.employeeCaptureUrl='';
-      state.employeeSourceType='';
-      state.employeeQuality={score:null,level:'warn',message:'未評価',rejectCandidates:[]};
+      clearCapturedState();
       els.cameraCaptured.classList.add('hidden');
       els.cameraCaptured.src='';
       els.cameraVideo.classList.remove('hidden');
@@ -814,12 +862,13 @@
       els.overlayRetakeArea.classList.add('hidden');
       els.overlayCaptureBtn.disabled=!state.camera.stream;
       resetStability();
-      setCaptureMessage('warn','顔と肩が枠に収まるように合わせてください。');
+      setCaptureMessage('warn','頭・顔・肩を帯に合わせてください。');
     }
     function useCapturedPhoto(){
       if(!state.employeeCaptureBlob||!state.employeeCaptureUrl) return;
       els.selectedPreviewImage.src=state.employeeCaptureUrl;
       els.selectedPreviewArea.classList.remove('hidden');
+      closeGuidePanel();
       closeCameraOverlay();
       showEmployeeStep(3);
     }
@@ -1040,13 +1089,13 @@
     els.backBtn.addEventListener('click',employeeBack);
     els.nextBtn.addEventListener('click',employeeNext);
     els.tokenInput.addEventListener('input',resolveSession);
-    els.openCameraBtn.addEventListener('click',()=>openCameraOverlay());
+    els.openCameraBtn.addEventListener('click',()=>{clearCapturedState(); openCameraOverlay();});
     els.openFileBtn.addEventListener('click',()=>els.fileInput.click());
-    els.resubmitCameraBtn.addEventListener('click',()=>{showEmployeeStep(2);openCameraOverlay();});
+    els.resubmitCameraBtn.addEventListener('click',()=>{showEmployeeStep(2); clearCapturedState(); openCameraOverlay();});
     els.resubmitFileBtn.addEventListener('click',()=>els.fileInput.click());
     els.fileInput.addEventListener('change',e=>handleSelectedFile(e.target.files?.[0]));
     els.closeCameraOverlay.addEventListener('click',closeCameraOverlay);
-    els.cameraInfoBtn.addEventListener('click',()=>alert('顔は中央、肩は下の目安に合わせてください。安定バーは、顔検出がなくても端末の揺れに反応するよう修正しています。'));
+    els.cameraInfoBtn.addEventListener('click',()=>alert('顔は中央、肩は下の目安に合わせてください。ガイドは重ならないパネル表示にし、再度カメラを開いたときも判定が再開するよう修正しています。'));
     els.overlayFileBtn.addEventListener('click',()=>{closeCameraOverlay();els.fileInput.click();});
     els.overlayCaptureBtn.addEventListener('click',capturePhoto);
     els.overlaySwitchCameraBtn.addEventListener('click',async()=>{
