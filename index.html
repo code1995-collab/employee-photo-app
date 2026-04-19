@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>顔写真収集アプリ - v12 実ファイル版</title>
+  <title>顔写真収集アプリ - v13 実ファイル版</title>
   <style>
     :root{
       --primary:#002045; --primary2:#123d6b; --bg:#f7fafc; --surface:#fff; --line:#dbe4ee;
@@ -540,7 +540,7 @@
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
-    const APP={storageKey:'badge_photo_app_demo_v9'};
+    const APP={storageKey:'badge_photo_app_demo_v13'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
     const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中',prevMotionSignature:null,motionEma:0}};
     const $=id=>document.getElementById(id);
@@ -614,6 +614,16 @@
       state.camera.motionEma=0;
       if(els.stabilityText) els.stabilityText.textContent='調整中';
       if(els.stabilityFill) els.stabilityFill.style.width='0%';
+    }
+    function clearCapturedState(){
+      if(state.employeeCaptureUrl?.startsWith('blob:')) URL.revokeObjectURL(state.employeeCaptureUrl);
+      state.employeeCaptureBlob=null;
+      state.employeeCaptureUrl='';
+      state.employeeSourceType='';
+      state.employeeQuality={score:null,level:'warn',message:'未評価',rejectCandidates:[]};
+      els.selectedPreviewArea.classList.add('hidden');
+      els.selectedPreviewImage.src='';
+      els.reviewImage.src='';
     }
     function updateStabilityUI(score,text){
       state.camera.stableScore=score;
@@ -1095,7 +1105,8 @@
     els.resubmitFileBtn.addEventListener('click',()=>els.fileInput.click());
     els.fileInput.addEventListener('change',e=>handleSelectedFile(e.target.files?.[0]));
     els.closeCameraOverlay.addEventListener('click',closeCameraOverlay);
-    els.cameraInfoBtn.addEventListener('click',()=>alert('顔は中央、肩は下の目安に合わせてください。ガイドは重ならないパネル表示にし、再度カメラを開いたときも判定が再開するよう修正しています。'));
+    els.cameraInfoBtn.addEventListener('click',()=>{els.guidePanel.classList.remove('hidden');});
+    els.closeGuidePanelBtn.addEventListener('click',()=>{els.guidePanel.classList.add('hidden');});
     els.overlayFileBtn.addEventListener('click',()=>{closeCameraOverlay();els.fileInput.click();});
     els.overlayCaptureBtn.addEventListener('click',capturePhoto);
     els.overlaySwitchCameraBtn.addEventListener('click',async()=>{
