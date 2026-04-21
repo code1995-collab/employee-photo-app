@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>顔写真収集アプリ - v32 実ファイル版</title>
+  <title>顔写真収集アプリ - v33 実ファイル版</title>
   <style>
     :root{
       --primary:#002045; --primary2:#123d6b; --bg:#f7fafc; --surface:#fff; --line:#dbe4ee;
@@ -243,7 +243,7 @@
     <div class="topbar-inner">
       <div class="brand">
         <h1>顔写真収集アプリ</h1>
-        <p><a href="#" id="versionInfoLink">v32 実ファイル書き出し版（誤判定改善 + タブ復帰補正 + PC対応）</a></p>
+        <p><a href="#" id="versionInfoLink">v33 実ファイル書き出し版（誤判定改善 + タブ復帰補正 + PC対応）</a></p>
       </div>
       <div class="nav-switch">
         <button class="switch-btn active" id="switchEmployee">従業員モード</button>
@@ -591,7 +591,7 @@
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
-    const APP={storageKey:'badge_photo_app_demo_v32'};
+    const APP={storageKey:'badge_photo_app_demo_v33'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
     const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中',prevMotionSignature:null,motionEma:0}};
     const $=id=>document.getElementById(id);
@@ -760,12 +760,13 @@ function closeReleasePanel(){
     }
 
 
+
 function estimateFaceLikePresence(ctx,w,h,brightness){
   const roi = {
-    x: Math.floor(w*0.12),
+    x: Math.floor(w*0.10),
     y: Math.floor(h*0.02),
-    w: Math.floor(w*0.76),
-    h: Math.floor(h*0.70)
+    w: Math.floor(w*0.80),
+    h: Math.floor(h*0.72)
   };
   const step = 3;
   const data=ctx.getImageData(roi.x,roi.y,roi.w,roi.h).data;
@@ -783,8 +784,8 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
       const cb=128 - 0.168736*r - 0.331264*g + 0.5*b;
       const cr=128 + 0.5*r - 0.418688*g - 0.081312*b;
 
-      const rgbSkin = r>68 && g>24 && b>10 && (max-min)>4 && Math.abs(r-g)>3 && r>=g && r>b;
-      const ycbcrSkin = cr>118 && cr<194 && cb>72 && cb<152;
+      const rgbSkin = r>62 && g>22 && b>8 && (max-min)>3 && Math.abs(r-g)>2 && r>=g && r>b;
+      const ycbcrSkin = cr>114 && cr<198 && cb>68 && cb<156;
       const isSkin = rgbSkin || ycbcrSkin;
 
       if(isSkin){
@@ -809,7 +810,7 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
   const avgContrast=samples?contrast/samples:0;
   let bbox = null;
   let centerX = 0.5;
-  let centerY = 0.34;
+  let centerY = 0.36;
   let sizeRatio = 0;
   let confidence = 0;
   let aspect = 1.2;
@@ -821,7 +822,7 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
   let colCoverage = 0;
   let heightRatio = 0;
 
-  if(skin > 6 && Number.isFinite(minX) && Number.isFinite(minY)){
+  if(skin > 4 && Number.isFinite(minX) && Number.isFinite(minY)){
     const bw = Math.max(1, maxX-minX);
     const bh = Math.max(1, maxY-minY);
     centerX = (roi.x + (minX+maxX)/2) / w;
@@ -833,47 +834,47 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
     areaRatio = (bw*bh)/(roi.w*roi.h);
     bbox = { x: roi.x+minX, y: roi.y+minY, width: bw, height: bh };
 
-    rowCoverage = rowHits.filter(v=>v>=2).length / Math.max(1,rowHits.length);
-    colCoverage = colHits.filter(v=>v>=2).length / Math.max(1,colHits.length);
+    rowCoverage = rowHits.filter(v=>v>=1).length / Math.max(1,rowHits.length);
+    colCoverage = colHits.filter(v=>v>=1).length / Math.max(1,colHits.length);
 
-    shapeOk = widthRatio>=0.035 && widthRatio<=0.94 && heightRatio>=0.05 && heightRatio<=0.98 && aspect>=0.35 && aspect<=4.2;
-    posOk = centerX>=0.05 && centerX<=0.95 && centerY>=0.02 && centerY<=0.76;
+    shapeOk = widthRatio>=0.02 && widthRatio<=0.98 && heightRatio>=0.03 && heightRatio<=0.98 && aspect>=0.25 && aspect<=4.8;
+    posOk = centerX>=0.03 && centerX<=0.97 && centerY>=0.02 && centerY<=0.82;
 
     confidence =
       (skinRatio*260) +
-      (avgContrast*1.0) +
-      (rowCoverage*18) +
-      (colCoverage*16) +
+      (avgContrast*1.3) +
+      (rowCoverage*22) +
+      (colCoverage*18) +
       (shapeOk?8:0) +
       (posOk?8:0) +
-      (areaRatio*58);
+      (areaRatio*50);
   }
 
   const visibleLikely = (
     bbox!==null &&
-    skinRatio>=0.0035 &&
-    avgContrast>=0.18 &&
-    sizeRatio>=0.04 && sizeRatio<=0.82 &&
-    widthRatio>=0.03 && widthRatio<=0.96 &&
-    rowCoverage>=0.03 &&
-    colCoverage>=0.03 &&
-    areaRatio>=0.0016 &&
-    aspect>=0.35 && aspect<=4.2 &&
-    centerX>=0.05 && centerX<=0.95 &&
-    centerY>=0.02 && centerY<=0.76 &&
-    confidence>=3.2
+    skinRatio>=0.0012 &&
+    avgContrast>=0.06 &&
+    sizeRatio>=0.025 && sizeRatio<=0.92 &&
+    widthRatio>=0.02 && widthRatio<=0.98 &&
+    rowCoverage>=0.01 &&
+    colCoverage>=0.01 &&
+    areaRatio>=0.0006 &&
+    aspect>=0.25 && aspect<=4.8 &&
+    centerX>=0.03 && centerX<=0.97 &&
+    centerY>=0.02 && centerY<=0.82 &&
+    confidence>=1.2
   );
 
   const likely = (
-    visibleLikely &&
-    skinRatio>=0.006 &&
-    avgContrast>=0.30 &&
-    rowCoverage>=0.05 &&
-    colCoverage>=0.05 &&
-    areaRatio>=0.003 &&
-    sizeRatio>=0.05 && sizeRatio<=0.74 &&
-    widthRatio>=0.04 && widthRatio<=0.90 &&
-    confidence>=5.4
+    bbox!==null &&
+    skinRatio>=0.0022 &&
+    avgContrast>=0.12 &&
+    rowCoverage>=0.02 &&
+    colCoverage>=0.02 &&
+    areaRatio>=0.0012 &&
+    sizeRatio>=0.035 && sizeRatio<=0.82 &&
+    widthRatio>=0.025 && widthRatio<=0.94 &&
+    confidence>=2.1
   );
 
   const strongLikely = (
@@ -881,18 +882,19 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
     brightness.tone!=='ng' &&
     shapeOk &&
     posOk &&
-    skinRatio>=0.014 &&
-    avgContrast>=0.70 &&
-    rowCoverage>=0.10 &&
-    colCoverage>=0.08 &&
-    areaRatio>=0.008 &&
-    sizeRatio>=0.08 && sizeRatio<=0.60 &&
-    widthRatio>=0.06 && widthRatio<=0.78 &&
-    confidence>=9.5
+    skinRatio>=0.010 &&
+    avgContrast>=0.40 &&
+    rowCoverage>=0.06 &&
+    colCoverage>=0.05 &&
+    areaRatio>=0.004 &&
+    sizeRatio>=0.06 && sizeRatio<=0.66 &&
+    widthRatio>=0.05 && widthRatio<=0.82 &&
+    confidence>=6.8
   );
 
   return { visibleLikely, likely, strongLikely, skinRatio, avgContrast, bbox, centerX, centerY, sizeRatio, confidence, aspect, widthRatio, areaRatio, rowCoverage, colCoverage };
 }
+
 
 
 function computeMotionOnlyStability(ctx,w,h){
@@ -1018,7 +1020,7 @@ async function openCameraOverlay(deviceId=''){
 
 
 function withPseudoFaceAssessment(presence,w,h,brightness){
-  if(!presence || (!presence.visibleLikely && !presence.likely) || !presence.bbox){
+  if(!presence || !presence.bbox){
     return {level:'warn',message:'顔をガイド枠に合わせてください。',score:18+brightness.score,rejectCandidates:['OTHER'],hintEdges:[]};
   }
   const box = presence.bbox;
@@ -1150,7 +1152,7 @@ async function assessFrame(){
             brightness:(brightness.score||0)
           });
           result.stability=stability;
-        } else if(presence.visibleLikely || presence.likely || state.camera.presenceEma >= 3.5){
+        } else if(presence.visibleLikely || presence.likely || state.camera.presenceEma >= 0.9){
           result=withPseudoFaceAssessment(presence,canvas.width,canvas.height,brightness);
           stability=computeStability({
             cx:presence.centerX,
@@ -1167,7 +1169,7 @@ async function assessFrame(){
           result.stability.score = Math.max(18, Math.round(stability.score*0.40));
         }
       }catch(e){
-        if(presence.visibleLikely || presence.likely || state.camera.presenceEma >= 6){
+        if(presence.visibleLikely || presence.likely || state.camera.presenceEma >= 1.4){
           result=withPseudoFaceAssessment(presence,canvas.width,canvas.height,brightness);
           stability=computeStability({
             cx:presence.centerX,
@@ -1183,7 +1185,7 @@ async function assessFrame(){
         }
       }
     } else {
-      if(presence.visibleLikely || presence.likely || state.camera.presenceEma >= 6){
+      if(presence.visibleLikely || presence.likely || state.camera.presenceEma >= 1.4){
         result=withPseudoFaceAssessment(presence,canvas.width,canvas.height,brightness);
         stability=computeStability({
           cx:presence.centerX,
@@ -1201,8 +1203,8 @@ async function assessFrame(){
       }
     }
 
-    const faceVisible = hasFace || presence.visibleLikely || presence.likely || state.camera.presenceEma >= 3.5;
-    const faceStrong = hasFace || presence.strongLikely || state.camera.presenceEma >= 11;
+    const faceVisible = hasFace || presence.visibleLikely || presence.likely || state.camera.presenceEma >= 0.9;
+    const faceStrong = hasFace || presence.strongLikely || state.camera.presenceEma >= 6.8;
     const hintEdges = faceVisible && Array.isArray(result.hintEdges) ? result.hintEdges : [];
     setGuideFrameHint(hintEdges);
 
