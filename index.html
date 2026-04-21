@@ -243,7 +243,7 @@
     <div class="topbar-inner">
       <div class="brand">
         <h1>顔写真収集アプリ</h1>
-        <p><a href="#" id="versionInfoLink">v35 実ファイル書き出し版（誤判定改善 + タブ復帰補正 + PC対応）</a></p>
+        <p><a href="#" id="versionInfoLink">v36 実ファイル書き出し版（誤判定改善 + タブ復帰補正 + PC対応）</a></p>
       </div>
       <div class="nav-switch">
         <button class="switch-btn active" id="switchEmployee">従業員モード</button>
@@ -591,7 +591,7 @@
   <canvas id="analysisCanvas" class="hidden"></canvas>
 
   <script>
-    const APP={storageKey:'badge_photo_app_demo_v35'};
+    const APP={storageKey:'badge_photo_app_demo_v36'};
     const REJECT_REASON_MASTER=[{code:'FACE_TOO_SMALL',label:'顔が小さい',employeeText:'顔が小さく写っています'},{code:'FACE_CROPPED',label:'顔が切れている',employeeText:'顔の一部が切れています'},{code:'TOO_DARK',label:'暗い',employeeText:'写真が暗く見えます'},{code:'BLURRY',label:'ピンぼけ',employeeText:'写真がぼやけています'},{code:'BACKGROUND_NOISY',label:'背景が不適',employeeText:'背景に不要なものが写っています'},{code:'MULTIPLE_PEOPLE',label:'複数人が写っている',employeeText:'複数人が写っています'},{code:'MASK_OR_HAT',label:'顔遮蔽あり',employeeText:'顔が隠れています'},{code:'NOT_FRONT_FACE',label:'正面でない',employeeText:'正面を向いていません'},{code:'OTHER',label:'その他',employeeText:'再提出のお願いがあります'}];
     const state={db:null,mode:'employee',employeeStep:1,employeeSession:null,employeeSourceType:'',employeeCaptureBlob:null,employeeCaptureUrl:'',employeeQuality:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},selectedSubmissionId:null,currentAdminTab:'dashboard',currentRole:'reviewer',camera:{stream:null,devices:[],currentDeviceId:'',facingMode:'user',detector:null,timer:null,overlayOpen:false,lastAssessment:{score:null,level:'warn',message:'未評価',rejectCandidates:[]},history:[],stableScore:0,stableText:'調整中',prevMotionSignature:null,motionEma:0}};
     const $=id=>document.getElementById(id);
@@ -759,18 +759,14 @@ function closeReleasePanel(){
       return sig;
     }
 
-
-
-
-
 function estimateFaceLikePresence(ctx,w,h,brightness){
   const roi = {
-    x: Math.floor(w*0.22),
+    x: Math.floor(w*0.24),
     y: Math.floor(h*0.06),
-    w: Math.floor(w*0.56),
-    h: Math.floor(h*0.56)
+    w: Math.floor(w*0.52),
+    h: Math.floor(h*0.40)
   };
-  const step = 4;
+  const step = 3;
   const data = ctx.getImageData(roi.x, roi.y, roi.w, roi.h).data;
   const rows = Math.ceil(roi.h/step);
   const cols = Math.ceil(roi.w/step);
@@ -788,8 +784,8 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
       const cb=128 - 0.168736*r - 0.331264*g + 0.5*b;
       const cr=128 + 0.5*r - 0.418688*g - 0.081312*b;
 
-      const rgbSkin = r>78 && g>36 && b>20 && (max-min)>10 && r>g && r>b;
-      const ycbcrSkin = cr>133 && cr<176 && cb>85 && cb<135;
+      const rgbSkin = r>82 && g>38 && b>20 && (max-min)>12 && r>g && r>b;
+      const ycbcrSkin = cr>133 && cr<176 && cb>84 && cb<135;
       const isSkin = rgbSkin || ycbcrSkin;
 
       if(isSkin){
@@ -806,7 +802,6 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
 
   const skinRatio = samples ? skin/samples : 0;
   const avgContrast = samples ? contrast/samples : 0;
-
   const rowDensity = rowHits.map(v => v / Math.max(1, cols));
   const colDensity = colHits.map(v => v / Math.max(1, rows));
 
@@ -820,10 +815,10 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
   const rowSmooth = smooth(rowDensity);
   const colSmooth = smooth(colDensity);
 
-  const rowStart = Math.floor(rows*0.08);
-  const rowEnd = Math.floor(rows*0.72);
-  const colStart = Math.floor(cols*0.18);
-  const colEnd = Math.floor(cols*0.82);
+  const rowStart = Math.floor(rows*0.05);
+  const rowEnd = Math.floor(rows*0.80);
+  const colStart = Math.floor(cols*0.10);
+  const colEnd = Math.floor(cols*0.90);
 
   let peakRow = rowStart;
   let peakCol = colStart;
@@ -835,21 +830,18 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
 
   let bbox = null;
   let centerX = 0.5;
-  let centerY = 0.32;
+  let centerY = 0.24;
   let sizeRatio = 0;
   let confidence = 0;
-  let aspect = 1.2;
   let widthRatio = 0;
-  let areaRatio = 0;
-  let shapeOk = false;
-  let posOk = false;
-  let rowCoverage = 0;
-  let colCoverage = 0;
   let heightRatio = 0;
+  let aspect = 1.2;
+  let posOk = false;
+  let shapeOk = false;
 
-  if(rowPeak >= 0.06 && colPeak >= 0.10){
-    const rowCut = Math.max(0.04, rowPeak*0.42);
-    const colCut = Math.max(0.05, colPeak*0.42);
+  if(rowPeak >= 0.07 && colPeak >= 0.07){
+    const rowCut = Math.max(0.04, rowPeak*0.48);
+    const colCut = Math.max(0.04, colPeak*0.48);
 
     let minRow = peakRow, maxRow = peakRow;
     while(minRow>0 && rowSmooth[minRow-1] >= rowCut) minRow--;
@@ -870,68 +862,59 @@ function estimateFaceLikePresence(ctx,w,h,brightness){
     sizeRatio = bbox.height / h;
     widthRatio = bbox.width / roi.w;
     heightRatio = bbox.height / roi.h;
-    areaRatio = (bbox.width * bbox.height) / (roi.w * roi.h);
     aspect = bbox.height / Math.max(1, bbox.width);
 
-    rowCoverage = (maxRow-minRow+1) / Math.max(1, rows);
-    colCoverage = (maxCol-minCol+1) / Math.max(1, cols);
+    posOk =
+      centerX >= 0.26 && centerX <= 0.74 &&
+      centerY >= 0.12 && centerY <= 0.42;
 
     shapeOk =
-      widthRatio >= 0.18 && widthRatio <= 0.62 &&
-      heightRatio >= 0.24 && heightRatio <= 0.78 &&
-      aspect >= 0.85 && aspect <= 1.95;
-
-    posOk =
-      centerX >= 0.24 && centerX <= 0.76 &&
-      centerY >= 0.15 && centerY <= 0.48;
+      widthRatio >= 0.16 && widthRatio <= 0.62 &&
+      heightRatio >= 0.16 && heightRatio <= 0.78 &&
+      aspect >= 0.75 && aspect <= 2.10;
 
     confidence = Math.min(10,
-      (skinRatio * 280) +
+      (skinRatio * 260) +
       (Math.min(rowPeak,0.35) * 8) +
-      (Math.min(colPeak,0.45) * 9) +
-      (areaRatio * 18) +
-      Math.min(2.2, avgContrast/6) +
-      (shapeOk ? 1.1 : 0) +
-      (posOk ? 1.1 : 0)
+      (Math.min(colPeak,0.35) * 8) +
+      Math.min(2.0, avgContrast/7) +
+      (shapeOk ? 1.2 : 0) +
+      (posOk ? 1.4 : 0)
     );
   }
 
   const visibleLikely = (
     bbox!==null &&
     skinRatio >= 0.010 &&
-    rowPeak >= 0.06 &&
-    colPeak >= 0.10 &&
-    widthRatio >= 0.18 && widthRatio <= 0.62 &&
-    heightRatio >= 0.24 && heightRatio <= 0.78 &&
-    centerX >= 0.20 && centerX <= 0.80 &&
-    centerY >= 0.12 && centerY <= 0.52 &&
-    confidence >= 2.4
+    rowPeak >= 0.07 &&
+    colPeak >= 0.07 &&
+    posOk &&
+    confidence >= 2.1
   );
 
   const likely = (
     visibleLikely &&
-    skinRatio >= 0.014 &&
-    rowPeak >= 0.08 &&
-    colPeak >= 0.14 &&
+    skinRatio >= 0.013 &&
+    rowPeak >= 0.09 &&
+    colPeak >= 0.09 &&
     shapeOk &&
-    confidence >= 3.3
+    confidence >= 3.0
   );
 
   const strongLikely = (
     likely &&
     brightness.tone !== 'ng' &&
-    posOk &&
-    skinRatio >= 0.018 &&
-    confidence >= 4.4
+    skinRatio >= 0.016 &&
+    confidence >= 4.2
   );
 
   return {
     visibleLikely, likely, strongLikely,
     skinRatio, avgContrast, bbox, centerX, centerY, sizeRatio, confidence,
-    aspect, widthRatio, areaRatio, rowCoverage, colCoverage, heightRatio,
-    rowPeak, colPeak
+    aspect, widthRatio, heightRatio, rowPeak, colPeak
   };
 }
+
 
 
 
@@ -1058,8 +1041,6 @@ async function openCameraOverlay(deviceId=''){
       return {level,message,score,rejectCandidates:brightness.tone==='ng'?['TOO_DARK']:[]};
     }
 
-
-
 function withPseudoFaceAssessment(presence,w,h,brightness){
   if(!presence || !presence.bbox){
     return {level:'warn',message:'顔をガイド枠に合わせてください。',score:18+brightness.score,rejectCandidates:['OTHER'],hintEdges:[]};
@@ -1068,7 +1049,7 @@ function withPseudoFaceAssessment(presence,w,h,brightness){
   const centerX = box.x + box.width/2;
   const centerY = box.y + box.height/2;
   const guideX = w/2;
-  const guideY = h*0.30;
+  const guideY = h*0.24;
   const dx = (centerX-guideX)/w;
   const dy = (centerY-guideY)/h;
   const ratio = box.height/h;
@@ -1079,19 +1060,19 @@ function withPseudoFaceAssessment(presence,w,h,brightness){
   let message = 'そのままで撮影できます。';
   let level = brightness.tone==='ng' ? 'ng' : 'ok';
 
-  if(dx < -0.09){ level='warn'; message='顔を少し右に寄せてください。'; hintEdges.push('left'); score+=5; }
-  else if(dx > 0.09){ level='warn'; message='顔を少し左に寄せてください。'; hintEdges.push('right'); score+=5; }
+  if(dx < -0.10){ level='warn'; message='顔を少し右に寄せてください。'; hintEdges.push('left'); score+=5; }
+  else if(dx > 0.10){ level='warn'; message='顔を少し左に寄せてください。'; hintEdges.push('right'); score+=5; }
   else { score += 14; }
 
   if(dy < -0.08){ level='warn'; message='顔を少し下げてください。'; if(!hintEdges.includes('top')) hintEdges.push('top'); score+=5; }
-  else if(dy > 0.10){ level='warn'; message='顔を少し上げてください。'; if(!hintEdges.includes('bottom')) hintEdges.push('bottom'); score+=5; }
+  else if(dy > 0.09){ level='warn'; message='顔を少し上げてください。'; if(!hintEdges.includes('bottom')) hintEdges.push('bottom'); score+=5; }
   else { score += 14; }
 
-  if(ratio < 0.16){
+  if(ratio < 0.12){
     level='warn'; message='少し近づいてください。'; rejects.push('FACE_TOO_SMALL'); score+=4;
-  } else if(ratio <= 0.40){
+  } else if(ratio <= 0.30){
     score += 22;
-  } else if(ratio <= 0.50){
+  } else if(ratio <= 0.38){
     level='warn'; message='少し離れてください。';
     if(!hintEdges.includes('top')) hintEdges.push('top');
     if(!hintEdges.includes('bottom')) hintEdges.push('bottom');
@@ -1110,6 +1091,7 @@ function withPseudoFaceAssessment(presence,w,h,brightness){
 
   return { level, message, score:Math.min(100, score), rejectCandidates:[...new Set(rejects)], hintEdges };
 }
+
 
 
 
